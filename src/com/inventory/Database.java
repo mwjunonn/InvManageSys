@@ -95,6 +95,9 @@ public class Database {
     }
 
     public ArrayList<String> getResult() {
+        /*
+            You can get single value with split method, use public constant variable "Spliter" to perform
+        */
         try {
             ResultSetMetaData md = result.getMetaData();
             ArrayList<String> values = new ArrayList<>();
@@ -156,6 +159,28 @@ public class Database {
                     sql += ", ";
                 }
             }
+        }
+        execute(sql, prmt);
+    }
+
+    public void deleteRecord(String[][] condition){
+        String[] prmt = new String[condition.length];
+        String sql = "DELETE FROM " + tablename + " WHERE ";
+        if(condition.length != 0){
+            for(int i = 0 ; i < condition.length; i++){
+                sql += condition[i][0] + " LIKE ? ";
+                if(! condition[i][1].equals("%%") && ! condition[i][1].isEmpty() && condition[i][1] != null) {
+                    prmt[i] = condition[i][1];
+                } else{
+                    throw new IllegalArgumentException("Condition must have values");
+                }
+                if(i < condition.length - 1){
+                    sql += ", ";
+                }
+            }
+        }
+        else{
+            throw new IllegalArgumentException("Condition must have values");
         }
         execute(sql, prmt);
     }
