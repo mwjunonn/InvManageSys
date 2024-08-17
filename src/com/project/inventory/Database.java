@@ -1,18 +1,29 @@
-package com.inventory;
+package com.project.inventory;
 
 import java.sql.*;
 import java.util.ArrayList;
 
+/*
+* Made by Mr. Wong Jun Onn(Marco)
+* To achieve CRUD action. For this system, create are not required.
+* Can use the database methods directly with using execute() methods
+*/
+
 public class Database {
-    /*
-    To achieve CRUD action. For this system, create are not required.
-    * */
     private Connection con;
     private String tablename;
-    public final String all = "*";
-    public final String spliter = " \\| " ;
+    public static final String all = "*";
+    /**
+     *  | in regex form
+     *  The split character that to split the column when the ArrayList returned
+     *  Can be used for split in String to get String Array
+     */
+    public static final String spliter = " \\| " ;
     private ResultSet result = null;
 
+    /**
+     * Try using another constructor that parameter is Table Name(String)
+     */
     public Database() {
         final String dbURL = "jdbc:mysql://localhost/assignment";
         final String username = "assignment";
@@ -27,10 +38,20 @@ public class Database {
         }
     }
 
+    /**
+     * Constructor of Database
+     * @param tablename Table name that would like to perform CRUD, can be declared again using setter
+     */
     public Database(String tablename) {
         this();
         this.tablename = tablename;
     }
+
+    /**
+     * Execute SQL command with avoiding sql injection (More secure)
+     * @param sql SQL Query, '?' will be the parameter Example: SELECT * FROM USER WHERE username = ?
+     * @param parameter Parameter that will replace the '?' respectively. Parameter will automatically add enclosed marks ( ' ). Example: marcowong will be 'marcowong'
+     */
 
     public void execute(String sql, String[] parameter) {
         try {
@@ -45,13 +66,34 @@ public class Database {
         }
     }
 
-    public void execute(String sql){
+    /**
+     * Execute SQL command directly
+     * <p>WARNING : Use this method and directly with concat the string may be caused SQL injection happen. To avoid this, please use alternative execute method {@code execute(String sql, String[] parameter)}</p>
+     * @param sql SQL command that would like to execute
+     */
+
+    protected boolean execute(String sql){
         try {
-            result =  con.createStatement().executeQuery(sql);
+            for(String str:Table.DANGERCLAUSE.getKeyword()){
+                int index = sql.toUpperCase().indexOf(str);
+                if(index != -1)
+                    return false;
+            }
+            Statement stmt = con.createStatement();
+            if(stmt.execute(sql))
+                result = stmt.getResultSet();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return true;
     }
+
+    /**
+     * Read the table with additional condition <p>Eg: JOIN</p>
+     * @param columnName Column Name that would like to get in Result
+     * @param condition <p>First Array : Which column name would like to check condition</p><p>Second Array : Condition of the column name respectively</p>
+     * @param additional Statement after WHERE clause condition. Eg: JOIN ...
+     */
 
     public void readTable(String[] columnName, String[][] condition, String additional) {
         String sql = "SELECT ";
@@ -75,17 +117,34 @@ public class Database {
         execute(sql,  prmt);
     } // Read record with condition
 
+    /**
+     * Read the table with condition<p>Eg: JOIN</p>
+     * @param columnName Column Name that would like to get in Result
+     * @param condition <p>First Array : Which column name would like to check condition</p><p>Second Array : Condition of the column name respectively</p>
+     */
     public void readTable(String[] columnName, String[][] condition){
         readTable(columnName, condition, "");
     }
 
+    /**
+     * Read the table with specifying which column returns<p>Eg: JOIN</p>
+     * @param columnName Column Name that would like to get in Result
+     */
     public void readTable(String[] columnName){
         readTable(columnName, new String[0][0] , "");
     }
 
+    /**
+     *  Single result with one column
+     * @param columnName  Column name that would like to get the result
+     * @return  The value of the column in first row of Result
+     */
     public String getResult(String columnName) {
         try {
-            if (result.next()) {
+            if(!result.isFirst()){
+                return null;
+            }
+            else{
                 return result.getString(columnName);
             }
         } catch (SQLException e) {
@@ -94,6 +153,13 @@ public class Database {
         return null;
     }
 
+    /**
+     * Return whole result with the column name
+     * @return ArrayList of the Result. Index in ArrayList is the particular row of Result and the columns split with spliter '|' . First row is Column name
+     * <br>
+     * <p>You can use split in String in particular array index to get the particular value.</p>
+     * <p>{@code SPLITER}constant for split is provided in this class </p>
+     */
     public ArrayList<String> getResult() {
         /*
             You can get single value with split method, use public constant variable "Spliter" to perform
@@ -120,6 +186,11 @@ public class Database {
         return null;
     }
 
+    /**
+     * Insert value to the table
+     * @param columnName Which column would like to insert in the table
+     * @param values The values of the column respectively
+     */
     public void insertTable(String[] columnName, String[] values){
         String sql = "INSERT INTO " + tablename + " (";
         for(int i = 0; i < columnName.length; i++){
@@ -140,6 +211,11 @@ public class Database {
         execute(sql, values);
     }
 
+    /**
+     * Update the table with condition (Update the table without condition is not allowed)
+     * @param values  <p>First Array : Which column name would like to update value</p><p>Second Array : Value of the column name respectively</p>
+     * @param condition <p>First Array : Which column name would like to check condition</p><p>Second Array : Condition of the column name respectively</p>
+     */
     public void updateTable(String[][] values, String[][] condition){
         String[] prmt = new String[condition.length + values.length];
         String sql = "UPDATE " + tablename + " SET ";
@@ -163,6 +239,10 @@ public class Database {
         execute(sql, prmt);
     }
 
+    /**
+     * Delete the record (Must be with condition)
+     * @param condition <p>First Array : Which column name would like to check condition</p><p>Second Array : Condition of the column name respectively</p>
+     */
     public void deleteRecord(String[][] condition){
         String[] prmt = new String[condition.length];
         String sql = "DELETE FROM " + tablename + " WHERE ";
