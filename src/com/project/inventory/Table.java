@@ -1,7 +1,7 @@
 package com.project.inventory;
 
 public enum Table {
-    ITEM("item", new String[]{"item_id", "item_name"}),
+    ITEM("item", new String[]{"item_id", "item_name", "item_type"}),
     DANGERCLAUSE(new String[]{"DROP", "DELETE", "GRANT", "TRUNCATE"});
 
     private final String tableName;

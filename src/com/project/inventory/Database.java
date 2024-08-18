@@ -11,7 +11,17 @@ import java.util.ArrayList;
 
 public class Database {
     private Connection con;
+    private boolean success = false;
     private String tablename;
+
+    /**
+     * Check if the database is success to connect or not
+     * @return {@code True} if database connect successfully
+     */
+    public boolean isSuccess() {
+        return success;
+    }
+
     public static final String all = "*";
     /**
      *  | in regex form
@@ -31,9 +41,8 @@ public class Database {
 
         try {
             con = DriverManager.getConnection(dbURL, username, pws);
-            System.out.println("Connected to database");
+            success = true;
         } catch (SQLException e) {
-            System.out.println("Error occur");
             e.printStackTrace();
         }
     }
@@ -51,25 +60,31 @@ public class Database {
      * Execute SQL command with avoiding sql injection (More secure)
      * @param sql SQL Query, '?' will be the parameter Example: SELECT * FROM USER WHERE username = ?
      * @param parameter Parameter that will replace the '?' respectively. Parameter will automatically add enclosed marks ( ' ). Example: marcowong will be 'marcowong'
+     *  @return {@code true} means successful, {@code false} means unsuccessful.
      */
 
-    public void execute(String sql, String[] parameter) {
+    public boolean execute(String sql, String[] parameter) {
         try {
-            PreparedStatement stmt = con.prepareStatement(sql);
+            PreparedStatement stmt = con.prepareStatement(sql,ResultSet. TYPE_SCROLL_INSENSITIVE,
+                    ResultSet. CONCUR_UPDATABLE);
             for (int i = 0; i < parameter.length; i++) {
                 stmt.setString(i + 1, parameter[i]);
             }
-            stmt.execute();
-            result = stmt.getResultSet();
+            boolean status =  stmt.execute();
+            if(status)
+                result = stmt.getResultSet();
+            return status;
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     /**
      * Execute SQL command directly
      * <p>WARNING : Use this method and directly with concat the string may be caused SQL injection happen. To avoid this, please use alternative execute method {@code execute(String sql, String[] parameter)}</p>
      * @param sql SQL command that would like to execute
+     * @return {@code true} means successful, {@code false} means unsuccessful.
      */
 
     protected boolean execute(String sql){
@@ -79,13 +94,16 @@ public class Database {
                 if(index != -1)
                     return false;
             }
-            Statement stmt = con.createStatement();
-            if(stmt.execute(sql))
+            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_UPDATABLE);
+            boolean status = stmt.execute(sql);
+            if(status)
                 result = stmt.getResultSet();
+            return status;
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     /**
