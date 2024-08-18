@@ -1,13 +1,9 @@
 package com.project.inventory;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
 
 public class Inventory {
-    //ArrayList<Item> itemList = new ArrayList<>();
-    ArrayList<String> itemID = new ArrayList<>();
-    HashMap<String, Integer> index = new HashMap<>();
+    ArrayList<Item> itemList = new ArrayList<>();
     int indexOfName, indexOfType;
     Database db = new Database("item");
     public Inventory() {
@@ -17,15 +13,22 @@ public class Inventory {
         String[] columnName = database.get(0).split(Database.spliter);
         for (int i = 0; i < columnName.length; i++) {
             for (int j = 0; j < Table.ITEM.getColumnName().length; j++) {
-                if(columnName[i].equals(Table.ITEM.getColumnName()[j])){
-                    index.put(Table.ITEM.getColumnName()[j], i);
+                if(columnName[i].equals(Table.ITEM.getSpecifiedColumn("name"))){
+                    indexOfName = i;
+                }else if(columnName[i].equals(Table.ITEM.getSpecifiedColumn("type"))){
+                    indexOfType = j;
                 }
             }
         }
-        int temp =  index.get(Table.ITEM.getSpecifiedColumn("id"));
         for (int i = 1; i < database.size(); i++) {
-            String[] row = database.get(i).split(Database.spliter);
-            itemID.add(row[temp]);
+            String[] value =  database.get(i).split(Database.spliter);
+            if(value[indexOfType].equals("Frozen"))
+                itemList.add(new FrozenItem(value[indexOfName]));
+            else if (value[indexOfType].equals("Dry")) {
+                itemList.add(new DryItem(value[indexOfName]));
+            }else{
+                itemList.add(new Item(value[indexOfName]));
+            }
         }
     }
 
