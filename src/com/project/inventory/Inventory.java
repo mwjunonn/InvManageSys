@@ -1,38 +1,93 @@
 package com.project.inventory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Inventory {
-    ArrayList<Item> itemList = new ArrayList<>();
-    int indexOfName, indexOfType;
-    Database db = new Database("item");
+    public static ArrayList<Item> itemList = new ArrayList<>();
+    private static Database db = new Database("item");
+
     public Inventory() {
+        startInventory();
+    }
+
+    public void printInventory() {
+        String[][] column = {
+                {"-30", "Item Name"},
+                { "-10", "Item Type"},
+                { "-10", "Item Unit"},
+                {"", "Latest Price"}
+        };
+        for(String[] str1 : column){
+            System.out.printf("%" + str1[0] +"s\t", str1[1]);
+
+        }
+        System.out.println();
+        for (Item item : itemList) {
+            System.out.println(item);
+        }
+    }
+
+    public static void startInventory() {
         ArrayList<String> database;
+        HashMap<String, Integer> attributeIndex = new HashMap<>();
         db.readTable(Table.ITEM.getColumnName());
         database = db.getResult();
         String[] columnName = database.get(0).split(Database.spliter);
         for (int i = 0; i < columnName.length; i++) {
             for (int j = 0; j < Table.ITEM.getColumnName().length; j++) {
-                if(columnName[i].equals(Table.ITEM.getSpecifiedColumn("name"))){
-                    indexOfName = i;
-                }else if(columnName[i].equals(Table.ITEM.getSpecifiedColumn("type"))){
-                    indexOfType = j;
+                if (columnName[i].equals(columnName[j])) {
+                    attributeIndex.put(columnName[j], i);
+                    break;
                 }
             }
         }
         for (int i = 1; i < database.size(); i++) {
-            String[] value =  database.get(i).split(Database.spliter);
-            if(value[indexOfType].equals("Frozen"))
-                itemList.add(new FrozenItem(value[indexOfName]));
-            else if (value[indexOfType].equals("Dry")) {
-                itemList.add(new DryItem(value[indexOfName]));
-            }else{
-                itemList.add(new Item(value[indexOfName]));
+            String[] value = database.get(i).split(Database.spliter);
+            if (value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))].equals("Frozen"))
+                itemList.add(new FrozenItem(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("name"))],
+                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))],
+                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("unit"))],
+                        Double.parseDouble(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("price"))])));
+            else if (value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))].equals("Dry")) {
+                itemList.add(new DryItem(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("name"))],
+                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))],
+                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("unit"))],
+                        Double.parseDouble(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("price"))])));
+            } else {
+                itemList.add(new Item(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("name"))],
+                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))],
+                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("unit"))],
+                        Double.parseDouble(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("price"))])));
             }
         }
+
     }
 
-    public void createInventory(){
-        
+    public void addInventory(Item item) {
+        itemList.add(item);
+    }
+
+    public Item getItem(int index) {
+        if (itemList.isEmpty()) {
+            startInventory();
+            return getItem(index);
+        } else if (itemList.size() < index + 1)
+            return null;
+        else
+            return itemList.get(index);
+    }
+
+    public Item getItem(String name) {
+        if (itemList.isEmpty()) {
+            startInventory();
+            return getItem(name);
+        }
+        for (Item item : itemList) {
+            if(item.getItemName().equals(name))
+                return item;
+        }
+        return null;
     }
 }
+
