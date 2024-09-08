@@ -29,6 +29,9 @@ public abstract class User {
         this("", "");
     }
     
+    //Permission?
+    public abstract void permission();
+    
     //Verify ID
     public abstract boolean equals(Object obj);
     

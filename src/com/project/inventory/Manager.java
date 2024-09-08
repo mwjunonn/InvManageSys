@@ -20,7 +20,7 @@ public class Manager extends User {
         super();
     }
     
-    public void process(int choice){
+    public void permission(){
         
     }
     
