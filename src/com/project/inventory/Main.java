@@ -44,21 +44,58 @@ public class Main {
     
     public static void loginMenu(){
         int choice;
+        String id;
+        String password;
         //If found out how to clear screen, enable this two
         //System.out.println("[Welcome to MIXUE Inventory System]");
         //System.out.println("-----------------------------------");
         do{
-            System.out.println("Login As: ");
+            System.out.println("Login as: ");
             System.out.println("1. Manager");
             System.out.println("2. Inventory Admin");
             System.out.println("3. Return to last page");
             System.out.print("Your choice: ");
             choice = scan.nextInt();
+            scan.nextLine();
             System.out.println("");
             switch(choice){
                 case 1:
+                    User manager = new Manager();
+                    
+                    System.out.println("Login as Manager"); 
+                    System.out.print("ID: ");
+                    id = scan.nextLine();
+                    System.out.print("Password: ");
+                    password = scan.nextLine();
+                    System.out.println();
+                    if (manager.equals(id) && manager.passwordValid(password)) {
+                        System.out.println("Login Successful");
+                    }
+                    else if (manager.equals(id) && !(manager.passwordValid(password))) {
+                        System.out.println("Wrong Password!");
+                    }
+                    else
+                        System.out.println("Login Failed");
+                    System.out.println("");
                     break;
                 case 2:
+                    User inventoryAdmin = new InventoryAdmin();
+                    
+                    System.out.println("Login as Inventory Admin");
+                    System.out.print("ID: ");
+                    id = scan.nextLine();
+                    System.out.print("Password: ");
+                    password = scan.nextLine();
+                    System.out.println();
+                    if (inventoryAdmin.equals(id) && inventoryAdmin.passwordValid(password)) {
+                        System.out.println("Login Successful");
+                    }
+                    else if (inventoryAdmin.equals(id) && !(inventoryAdmin.passwordValid(password))) {
+                        System.out.println("Wrong Password! ");
+                    }
+                    else
+                        System.out.println("Login Failed");
+                    System.out.println();
                     break;
                 case 3:
                     break;

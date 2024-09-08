@@ -25,6 +25,7 @@ public class InventoryAdmin extends User {
     public boolean equals(Object verify){
         for(int i = 0; i < getAllId().length; i++){
             if (verify.equals(getAllId()[i]) && getAllPosition()[i].equals("InventoryAdmin")) {
+                arrayCounter = i;
                 return true;
             }
         }
