@@ -2,14 +2,32 @@ package com.project.inventory;
 
 
 public class Item{
-    private String itemName, itemType;
-    Database db = new Database(Table.ITEM.getTableName());
+    private String itemName, itemType, itemUnit = "1kg";
+    private double latestPrice;
+    private static Database db = new Database(Table.ITEM.getTableName());
+    private boolean databaseExists = true;
     public Item() {
-        itemName = "";
+        this("", null);
     }
 
-    public Item(String itemName){
+    public Item(String itemName, String itemType, String itemUnit, double latestPrice) {
         this.itemName = itemName;
+        this.itemType = itemType;
+        this.itemUnit = itemUnit;
+        this.latestPrice = latestPrice;
+    }
+
+    public Item(String itemName, String itemType) {
+        this(itemName, itemType, "1kg", 0.0);
+        databaseExists =  checkDatabase();
+    }
+
+    public Item(String itemName) {
+        this(itemName, null);
+    }
+
+    public boolean isDatabaseExists() {
+        return databaseExists;
     }
 
     private boolean checkDatabase(){
@@ -30,6 +48,35 @@ public class Item{
         return false;
     }
 
+    private boolean modifyColumn(String columnName ,String value){
+        db.updateTable(new String[][]{
+                {columnName, value}
+        }, new String[][]{
+                {Table.ITEM.getSpecifiedColumn("name"), this.itemName},
+                {Table.ITEM.getSpecifiedColumn("type"), this.itemType},
+                {Table.ITEM.getSpecifiedColumn("unit"), this.itemUnit},
+                {Table.ITEM.getSpecifiedColumn("price"), String.format("%.02f", this.latestPrice)}
+        });
+        this.itemType = itemType;
+        return true;
+    }
+
+    public boolean modifyType(String value){
+        return modifyColumn(Table.ITEM.getSpecifiedColumn("type"), value);
+    }
+
+    public boolean modifyName(String value){
+        return modifyColumn(Table.ITEM.getSpecifiedColumn("name"), value);
+    }
+
+    public boolean modifyUnit(String value){
+        return modifyColumn(Table.ITEM.getSpecifiedColumn("unit"), value);
+    }
+
+    public boolean modifyPrice(String value){
+        return modifyColumn(Table.ITEM.getSpecifiedColumn("price"), value);
+    }
+
     public String getItemName() {
         return itemName;
     }
@@ -46,5 +93,8 @@ public class Item{
         return db.getResult().size() - 1;
     }
 
-
+    @Override
+    public String toString() {
+        return String.format("%-30s\t%-10s\t%-10s\t%.02f", itemName, itemType, itemUnit, latestPrice);
+    }
 }
