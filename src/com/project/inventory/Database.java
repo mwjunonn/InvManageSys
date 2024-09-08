@@ -31,7 +31,6 @@ public class Database{
      */
     public static final String spliter = " \\| " ;
     private ResultSet result = null;
-
     /**
      * Try using another constructor that parameter is Table Name(String)
      */

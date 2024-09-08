@@ -42,6 +42,7 @@ public class Inventory {
                 }
             }
         }
+        
         for (int i = 1; i < database.size(); i++) {
             String[] value = database.get(i).split(Database.spliter);
             if (value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))].equals("Frozen"))
@@ -62,6 +63,16 @@ public class Inventory {
             }
         }
 
+//        for (int i = 1; i < database.size(); i++) {
+//            String[] value =  database.get(i).split(Database.spliter);
+//            if(value[indexOfType].equals("Frozen"))
+//                itemList.add(new FrozenItem(value[indexOfName]));
+//            else if (value[indexOfType].equals("Dry")) {
+//                itemList.add(new DryItem(value[indexOfName]));
+//            }else{
+//                itemList.add(new Item(value[indexOfName]));
+//            }
+//        }
     }
 
     public void addInventory(Item item) {
