@@ -3,6 +3,7 @@ import java.util.ArrayList;
 
 public abstract class User {
     static Database db = new Database("user");
+    static int arrayCounter;
     
     protected static int userCount = 2300000;
     protected String user_id;
@@ -28,7 +29,16 @@ public abstract class User {
         this("", "");
     }
     
+    //Verify ID
     public abstract boolean equals(Object obj);
+    
+    //Verify Password
+    public boolean passwordValid(String password){
+        if (getAllPassword()[arrayCounter].equals(password)) {
+            return true;
+        }
+        return false;
+    }
     
     public void writeToDatabase(){
         String[] insertColumn = {"user_id", "name", "password", "position", "email"};
@@ -56,6 +66,17 @@ public abstract class User {
             positionList[i] = list.get(i).replaceAll(Database.spliter, "");
         }
         return positionList;
+    }
+    
+    public String[] getAllPassword(){
+        String[] tempPassword = {"password"};
+        db.readTable(tempPassword);
+        ArrayList<String> list = db.getResult();
+        String[] passwordList = new String[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            passwordList[i] = list.get(i).replaceAll(Database.spliter, "");
+        }
+        return passwordList;
     }
     
     //Accessor

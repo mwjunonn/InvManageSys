@@ -71,6 +71,7 @@ public class Main {
     
     public static void registerMenu(){
         String managerID = new String();
+        String managerPassword = new String();
         String name = new String();
         String position = new String();
         String password = new String();
@@ -86,10 +87,17 @@ public class Main {
         //System.out.println("-----------------------------------");
         scan.nextLine();
         System.out.println("Require manager to approve registration.");
-        System.out.print("Enter a Manager ID: ");
+        System.out.print("Enter Manager ID: ");
         managerID = scan.nextLine();
-        System.out.println();
         if (manager.equals(managerID)) {
+            System.out.print("Password: ");
+            managerPassword = scan.nextLine();
+        }
+        else
+            System.out.println("You are not a Manager.");
+        
+        System.out.println();
+        if (manager.equals(managerID) && manager.passwordValid(managerPassword)) {
             System.out.println("[Registration Portal]");
             System.out.println("---------------------");
             System.out.print("Enter name: ");
@@ -183,8 +191,10 @@ public class Main {
                 System.out.println();
             }
         }
-        else 
-            System.out.println("You are not a Manager.");
+        else if (manager.equals(managerID) && !(manager.passwordValid(managerPassword))) {
+            System.out.println("Wrong Password.");
+        }
+            
     }
     
     public static void clearScreen(){
