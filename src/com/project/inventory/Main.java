@@ -2,6 +2,7 @@ package com.project.inventory;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.IOException;
+import java.util.Set;
 
 public class Main {
     static Scanner scan = new Scanner(System.in);
@@ -139,6 +140,7 @@ public class Main {
             System.out.println("---------------------");
             System.out.print("Enter name: ");
             name = scan.nextLine();
+            User.nameValidation(name);
             do {
                 System.out.println("Position: ");
                 System.out.println("1. Manager");
@@ -158,8 +160,9 @@ public class Main {
                         break;
                 }
             } while (selection != 1 && selection!= 2);
-            System.out.print("Password: ");
+            System.out.print("Create password: ");
             password = scan.nextLine();
+            User.passwordValidation(password);
             System.out.print("Confirm password: ");
             confirmPassword = scan.nextLine();
             while(!(confirmPassword.equals(password))){
@@ -232,18 +235,5 @@ public class Main {
             System.out.println("Wrong Password.");
         }
             
-    }
-    
-    public static void clearScreen(){
-        //Clears Screen in java
-//        try {
-//        if (System.getProperty("os.name").contains("Windows"))
-//            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-//        else
-//            Runtime.getRuntime().exec("clear");
-//        } catch (IOException | InterruptedException ex) {}
-
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
     }
 }

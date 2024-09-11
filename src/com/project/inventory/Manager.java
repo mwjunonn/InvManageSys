@@ -20,6 +20,11 @@ public class Manager extends User {
         super();
     }
     
+    public void setALL(){
+        super.setALL(name, password, email);
+        super.position = position;
+    }
+    
     public void permission(){
         
     }

@@ -32,6 +32,19 @@ public abstract class User {
     //Permission?
     public abstract void permission();
     
+    //Verify Name
+    public static void nameValidation(String name){
+        if (name == null || name.equals("")) {
+            throw new IllegalArgumentException("Name is not allow to be empty.");
+        }
+    }
+    
+    public static void passwordValidation(String password){
+        if (password == null || password.equals("")) {
+            throw new IllegalArgumentException("Password is not allow to be empty.");
+        }
+    }
+    
     //Verify ID
     public abstract boolean equals(Object obj);
     
@@ -47,6 +60,27 @@ public abstract class User {
         String[] insertColumn = {"user_id", "name", "password", "position", "email"};
         String[] insertValue = {this.user_id, this.name, this.password, this.position, this.email};
         db.insertTable(insertColumn, insertValue);
+    }
+    
+    //Mutator (ID and Position auto assign)
+    public void setName(String name){
+        nameValidation(name);
+        this.name = name;
+    }
+    
+    public void setPassword(String password){
+        passwordValidation(password);
+        this.password = password;
+    }
+    
+    public void setEmail(String email){
+        this.email = email;         //email can be empty in database (some people might not have email)
+    }
+    
+    public void setALL (String name, String password, String email){
+        setName(name);
+        setPassword(password);
+        setEmail(email);
     }
     
     public String[] getAllId(){
