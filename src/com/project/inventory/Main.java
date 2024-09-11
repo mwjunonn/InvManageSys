@@ -71,6 +71,8 @@ public class Main {
                     System.out.println();
                     if (manager.equals(id) && manager.passwordValid(password)) {
                         System.out.println("Login Successful");
+                        System.out.println("Welcome Manager " + manager.getCurrentArrayCounterName());
+                        System.out.println("What would you like to do? ");
                         switch (permissionMenu(choice)){
                             case 1:     //Restock Inventory
                                 break;
@@ -106,6 +108,7 @@ public class Main {
                     System.out.println();
                     if (inventoryAdmin.equals(id) && inventoryAdmin.passwordValid(password)) {
                         System.out.println("Login Successful");
+                        System.out.println("Welcome " + inventoryAdmin.getCurrentArrayCounterName());
                         switch (permissionMenu(choice)){
                             case 1:     //Restock inventory
                                 break;

@@ -83,6 +83,8 @@ public abstract class User {
         setEmail(email);
     }
     
+    
+    //Accessor @ getter
     public String[] getAllId(){
         String[] verifyId = {"user_id"};
         db.readTable(verifyId);
@@ -126,8 +128,12 @@ public abstract class User {
         }
         return passwordList;
     }
+
+    public String getCurrentArrayCounterName(){
+        String[] allName = getAllName();
+        return allName[arrayCounter];
+    }
     
-    //Accessor
     public String getName(){
         return name;
     }
