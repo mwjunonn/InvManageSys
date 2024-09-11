@@ -94,6 +94,17 @@ public abstract class User {
         return idList;
     }
     
+    public String[] getAllName(){
+        String[] tempName = {"name"};
+        db.readTable(tempName);
+        ArrayList<String> list = db.getResult();
+        String[] nameList = new String[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            nameList[i] = list.get(i).replaceAll(Database.spliter, "");
+        }
+        return nameList;
+    }
+    
     public String[] getAllPosition(){
         String[] tempPosition = {"position"};
         db.readTable(tempPosition);
@@ -133,6 +144,7 @@ public abstract class User {
         return user_id;
     }
     
+    // For assigning userID automatically without duplication causing any errors
     public int checkNonDuplicateID(){
         int tempId = userCount;
         getAllId();

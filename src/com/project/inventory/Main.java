@@ -71,6 +71,22 @@ public class Main {
                     System.out.println();
                     if (manager.equals(id) && manager.passwordValid(password)) {
                         System.out.println("Login Successful");
+                        switch (permissionMenu(choice)){
+                            case 1:     //Restock Inventory
+                                break;
+                            case 2:     //Current Stock Report
+                                break;
+                            case 3:     //Display all supplier (If don't need cut this out)
+                                break;
+                            case 4:     //All staff details
+                                break;
+                            case 5:     //Modify staff details
+                                break;
+                            case 6:     //Delete staff
+                                break;
+                            default:
+                                break;
+                        }
                     }
                     else if (manager.equals(id) && !(manager.passwordValid(password))) {
                         System.out.println("Wrong Password!");
@@ -90,6 +106,14 @@ public class Main {
                     System.out.println();
                     if (inventoryAdmin.equals(id) && inventoryAdmin.passwordValid(password)) {
                         System.out.println("Login Successful");
+                        switch (permissionMenu(choice)){
+                            case 1:     //Restock inventory
+                                break;
+                            case 2:     //Purchase order status
+                                break;
+                            default:
+                                break;
+                        }
                     }
                     else if (inventoryAdmin.equals(id) && !(inventoryAdmin.passwordValid(password))) {
                         System.out.println("Wrong Password! ");
@@ -235,5 +259,48 @@ public class Main {
             System.out.println("Wrong Password.");
         }
             
+    }
+    
+    public static int permissionMenu(int choice){
+        int decision = 0;
+        
+        switch (choice){
+            // 1 = Manager, 2 = Inventory Admin
+            case 1:
+                do {
+                System.out.println("1. Restock inventory");         //order item @ purchase order
+                System.out.println("2. Current Stock Report");
+                System.out.println("3. Display all supplier");      //Not sure put here or wat, people incharge supplier can modify this
+                System.out.println("4. All staff details");
+                System.out.println("5. Modify staff details");
+                System.out.println("6. Delete staff");
+                System.out.println("7. Return to last page");
+                System.out.print("Choice > ");
+                decision = scan.nextInt();
+                    if (decision < 1 || decision > 7) {
+                        System.out.println("");
+                        System.out.println("Invalid input. Try again.");
+                        System.out.println("");
+                    }
+                } while ((decision < 1 || decision > 7) || decision != 7);                
+                break;
+            case 2:
+                do {
+                    System.out.println("1. Restock inventory");
+                    System.out.println("2. Purchase order status");
+                    System.out.println("3. Return to last page");
+                    System.out.print("Choice > ");
+                    decision = scan.nextInt();
+                    if (decision < 1 || decision > 3) {
+                        System.out.println("");
+                        System.out.println("Invalid input. Try again.");
+                        System.out.println("");
+                    }
+                } while ((decision < 1 || decision > 3) || decision != 3);
+                break;
+            default:
+                break;
+        }
+        return decision;
     }
 }
