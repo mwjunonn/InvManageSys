@@ -1,5 +1,7 @@
 package com.project.inventory;
 
+import com.mysql.cj.jdbc.exceptions.CommunicationsException;
+
 import java.sql.*;
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
@@ -39,16 +41,22 @@ public class Database{
             startDatabase();
     }
 
-    private static void startDatabase(){
+    public static void startDatabase(){
         final String dbURL = "jdbc:mysql://localhost/assignment";
-
+        if(success)
+            return;
         try {
             con = DriverManager.getConnection(dbURL, "assignment", "123456");
             con.setAutoCommit(true);
             if(con.isValid(1))
                 success = true;
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            if(e instanceof CommunicationsException) {
+                System.err.println("MySQL Server are not found...");
+            }else{
+                System.err.println(e.getMessage());
+            }
+            System.exit(-1);
         }
     }
 
@@ -61,14 +69,18 @@ public class Database{
         this.tablename = tablename;
     }
 
-    public static void closeDatabase() throws SQLException {
-        con.close();
-        if(con.isClosed())
-            success = false;
+    public static void closeDatabase(){
+        try {
+            con.close();
+            if (con.isClosed())
+                success = false;
+        }catch(SQLException e){
+            System.err.println(e.getMessage());
+        }
     }
 
-    private String nullToBlank(String value){
-        if(value.equals("null") || value.isBlank()){
+    private Object nullToBlank(Object value){
+        if(value.equals("null") || value == null){
             return "";
         }
         return value;
@@ -81,7 +93,7 @@ public class Database{
      *  @return {@code true} means successful, {@code false} means unsuccessful.
      */
 
-    public boolean execute(String sql, String[] parameter) {
+    public boolean execute(String sql, Object[] parameter) {
         try {
             PreparedStatement stmt = con.prepareStatement(sql,ResultSet. TYPE_SCROLL_INSENSITIVE,
                     ResultSet. CONCUR_UPDATABLE);
@@ -92,9 +104,11 @@ public class Database{
             boolean status =  stmt.execute();
             if(status)
                 result = stmt.getResultSet();
+            else
+                status = stmt.getUpdateCount() > 0;
             return status;
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
         return false;
     }
@@ -121,19 +135,20 @@ public class Database{
                 result = stmt.getResultSet();
             return status;
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
         return false;
     }
 
     /**
      * Read the table with additional condition <p>Eg: JOIN</p>
+     * @return {@code true} means successful, {@code false} means unsuccessful.
      * @param columnName Column Name that would like to get in Result
      * @param condition <p>An multiple array that coupled with column name and the condition value. <br>Eg: [[item_name, "Brown Sugar Pearl"]["item_type", "Frozen"]]</p>
      * @param additional Statement after WHERE clause condition. Eg: JOIN ...
      */
 
-    public void readTable(String[] columnName, String[][] condition, String additional) {
+    public boolean readTable(String[] columnName, String[][] condition, String additional) {
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT ");
         String[] prmt = new String[condition.length];
@@ -155,24 +170,26 @@ public class Database{
             }
         }
         sb.append(additional);
-        execute(sb.toString(),  prmt);
+        return execute(sb.toString(),  prmt);
     } // Read record with condition
 
     /**
      * Read the table with condition<p>Eg: JOIN</p>
+     * @return {@code true} means successful, {@code false} means unsuccessful.
      * @param columnName Column Name that would like to get in Result
      * @param condition <p>An multiple array that coupled with column name and the condition value. <br>Eg: [[item_name, "Brown Sugar Pearl"]["item_type", "Frozen"]]</p>
      */
-    public void readTable(String[] columnName, String[][] condition){
-        readTable(columnName, condition, "");
+    public boolean readTable(String[] columnName, String[][] condition){
+        return readTable(columnName, condition, "");
     }
 
     /**
      * Read the table with specifying which column returns<p>Eg: JOIN</p>
+     * @return {@code true} means successful, {@code false} means unsuccessful.
      * @param columnName Column Name that would like to get in Result
      */
-    public void readTable(String[] columnName){
-        readTable(columnName, new String[0][0] , "");
+    public boolean readTable(String[] columnName){
+        return readTable(columnName, new String[0][0] , "");
     }
 
     /**
@@ -229,11 +246,40 @@ public class Database{
     }
 
     /**
+     *
+     *
+     * @return
+     */
+    public ArrayList<ArrayList<Object>> getObjResult(){
+        ArrayList<ArrayList<Object>> values = new ArrayList<>();
+        try{
+            ResultSetMetaData md = result.getMetaData();
+            values.add(new ArrayList<>());
+            int index = 0;
+            for (int i = 1; i <= md.getColumnCount(); i++){
+                values.get(index).add(md.getColumnLabel(i));
+            }
+            while(result.next()){
+                values.add(new ArrayList<>());
+                index++;
+                for(int i = 1;i <= md.getColumnCount();i++){
+                    values.get(index).add(result.getObject(i));
+                }
+            }
+            result.first();
+            return values;
+        }catch(SQLException e){
+            System.err.println(e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Insert value to the table
      * @param columnName Which column would like to insert in the table
      * @param values The values of the column respectively
      */
-    public void insertTable(String[] columnName, String[] values){
+    public boolean insertTable(String[] columnName, Object[] values){
         StringBuilder sb = new StringBuilder();
         sb.append("INSERT INTO ").append(tablename).append(" (");
         for(int i = 0; i < columnName.length; i++){
@@ -250,7 +296,7 @@ public class Database{
             }
         }
         sb.append(")");
-        execute(sb.toString(), values);
+        return execute(sb.toString(), values);
     }
 
     /**
@@ -258,12 +304,12 @@ public class Database{
      * @param values  <p>An multiple array that coupled with column name and the update value. <br>Eg: [[item_name, "Brown Sugar Pearl"]["item_type", "Frozen"]]</p>
      * @param condition <p>An multiple array that coupled with column name and the condition value. <br>Eg: [[item_name, "Brown Sugar Pearl"]["item_type", "Frozen"]]</p>
      */
-    public void updateTable(String[][] values, String[][] condition){
-        String[] prmt = new String[condition.length + values.length];
+    public boolean updateTable(Object[][] values, Object[][] condition){
+        Object[] prmt = new Object[condition.length + values.length];
         StringBuilder sb = new StringBuilder();
         sb.append("UPDATE ").append(tablename).append(" SET ");
         for(int i = 0 ; i < values.length; i++) {
-            sb.append(prmt[i]).append(" = ? ");
+            sb.append((String)values[i][0]).append(" = ? ");
             prmt[i] = values[i][1];
             if (i < values.length - 1) {
                 sb.append(", ");
@@ -272,21 +318,21 @@ public class Database{
         if(condition.length != 0){
             sb.append(" WHERE ");
             for(int i = 0 ; i < condition.length; i++){
-                sb.append(condition[i][0]).append("LIKE ? ");
+                sb.append(condition[i][0]).append(" LIKE ? ");
                 prmt[i + values.length] = condition[i][1];
                 if(i < condition.length - 1){
                     sb.append(" AND ");
                 }
             }
         }
-        execute(sb.toString(), prmt);
+        return execute(sb.toString(), prmt);
     }
 
     /**
      * Delete the record (Must be with condition)
      * @param condition <p>An multiple array that coupled with column name and the condition value. <br>Eg: [[item_name, "Brown Sugar Pearl"]["item_type", "Frozen"]]</p>
      */
-    public void deleteRecord(String[][] condition){
+    public boolean deleteRecord(String[][] condition){
         String[] prmt = new String[condition.length];
         StringBuilder sb = new StringBuilder();
         sb.append("DELETE FROM ").append(tablename).append(" WHERE ");
@@ -304,8 +350,9 @@ public class Database{
             }
         }
         else{
-            throw new IllegalArgumentException("Condition must have values");
+            System.err.println("Condition must have values");
+            return false;
         }
-        execute(sb.toString(), prmt);
+        return execute(sb.toString(), prmt);
     }
 }

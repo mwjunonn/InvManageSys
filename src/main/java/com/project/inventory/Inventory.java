@@ -20,7 +20,6 @@ public class Inventory {
         };
         for(String[] str1 : column){
             System.out.printf("%" + str1[0] +"s\t", str1[1]);
-
         }
         System.out.println();
         for (Item item : itemList) {
@@ -29,38 +28,24 @@ public class Inventory {
     }
 
     public static void startInventory() {
-        ArrayList<String> database;
         HashMap<String, Integer> attributeIndex = new HashMap<>();
-        db.readTable(Table.ITEM.getColumnName());
-        database = db.getResult();
-        String[] columnName = database.get(0).split(Database.delimiter);
-        for (int i = 0; i < columnName.length; i++) {
-            for (int j = 0; j < Table.ITEM.getColumnName().length; j++) {
-                if (columnName[i].equals(columnName[j])) {
-                    attributeIndex.put(columnName[j], i);
-                    break;
-                }
-            }
+        db.readTable(new String[]{Database.all});
+        ArrayList<ArrayList<Object>> database = db.getObjResult();
+        for (int i = 0; i < database.getFirst().size(); i++) {
+            attributeIndex.put((String) database.getFirst().get(i), i);
         }
-        
         for (int i = 1; i < database.size(); i++) {
-            String[] value = database.get(i).split(Database.delimiter);
-            if (value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))].equals("Frozen"))
-                itemList.add(new FrozenItem(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("name"))],
-                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))],
-                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("quantity"))],
-                        Double.parseDouble(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("cost"))])));
-            else if (value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))].equals("Dry")) {
-                itemList.add(new DryItem(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("name"))],
-                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))],
-                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("quantity"))],
-                        Double.parseDouble(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("cost"))])));
-            } else {
-                itemList.add(new Item(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("name"))],
-                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))],
-                        value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("quantity"))],
-                        Double.parseDouble(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("cost"))])));
-            }
+            ArrayList<Object> row = database.get(i);
+            if(!row.get(attributeIndex.get("status")).equals(1))
+                continue;
+            itemList.add(new Item((String) row.get(attributeIndex.get("item_id")),
+                    (String) row.get(attributeIndex.get("item_name")),
+                    (String) row.get(attributeIndex.get("item_type")),
+                    (Integer) row.get(attributeIndex.get("quantity")),
+                    (Double) row.get(attributeIndex.get("cost")),
+                    (Integer) row.get(attributeIndex.get("per_unit")),
+                    (String) row.get(attributeIndex.get("unit"))
+            ));
         }
 
 //        for (int i = 1; i < database.size(); i++) {

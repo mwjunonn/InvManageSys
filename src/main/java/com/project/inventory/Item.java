@@ -1,37 +1,29 @@
 package com.project.inventory;
 
 
+
 public class Item{
-    private String itemName, itemType, itemUnit = "1kg";
+    private static Database db = new Database("inventory");
+    private String itemId, itemName, itemType, itemUnit;
+    private int quantity, per_unit;
     private double latestPrice;
-    private static Database db = new Database(Table.ITEM.getTableName());
-    private boolean databaseExists = true;
-    public Item() {
-        this("", null);
+
+
+    public Item(){
     }
 
-    public Item(String itemName, String itemType, String itemUnit, double latestPrice) {
+    public Item(String itemId, String itemName, String itemType, int quantity, double latestPrice, int per_unit, String itemUnit) {
+        this.itemId = itemId;
         this.itemName = itemName;
         this.itemType = itemType;
-        this.itemUnit = itemUnit;
+        this.quantity = quantity;
         this.latestPrice = latestPrice;
-    }
-
-    public Item(String itemName, String itemType) {
-        this(itemName, itemType, "1kg", 0.0);
-        databaseExists =  checkDatabase();
-    }
-
-    public Item(String itemName) {
-        this(itemName, null);
-    }
-
-    public boolean isDatabaseExists() {
-        return databaseExists;
+        this.per_unit = per_unit;
+        this.itemUnit = itemUnit;
     }
 
     private boolean checkDatabase(){
-        db.readTable(Table.ITEM.getColumnName(), new String[][]{{Table.ITEM.getSpecifiedColumn("name"), itemName}});
+        db.readTable(new String[]{"item_id"}, new String[][]{{"item_id", itemId}});
         return db.getResult().size() != 1; //if 1 is the column name only
     }
 
@@ -39,58 +31,65 @@ public class Item{
         if(checkDatabase()){
             return false;
         }else {
-            db.insertTable(new String[]{Table.ITEM.getSpecifiedColumn("name")}, new String[]{itemName});
+            db.insertTable(new String[]{"item_id", "item_name", "item_type", "quantity", "cost", "per_unit", "unit"},
+                    new String[]{itemId, itemName, itemType, String.valueOf(quantity), String.valueOf(latestPrice), String.valueOf(per_unit), itemUnit});
             return true;
         }
     }
 
-    public boolean updateQuantity() {
-        return false;
+    public boolean updateQuantity(int quantity) {
+        this.quantity = quantity;
+        return modifyColumn("quantity", String.valueOf(quantity));
     }
 
-    private boolean modifyColumn(String columnName ,String value){
-        db.updateTable(new String[][]{
+    private boolean modifyColumn(String columnName ,Object value){
+        db.updateTable(new Object[][]{
                 {columnName, value}
-        }, new String[][]{
-                {Table.ITEM.getSpecifiedColumn("name"), this.itemName},
-                {Table.ITEM.getSpecifiedColumn("type"), this.itemType},
-                {Table.ITEM.getSpecifiedColumn("unit"), this.itemUnit},
-                {Table.ITEM.getSpecifiedColumn("price"), String.format("%.02f", this.latestPrice)}
+        }, new Object[][]{
+                {"item_id", itemId}
         });
-        this.itemType = itemType;
         return true;
     }
 
     public boolean modifyType(String value){
-        return modifyColumn(Table.ITEM.getSpecifiedColumn("type"), value);
+        return modifyColumn("item_type", value);
     }
 
-    public boolean modifyName(String value){
-        return modifyColumn(Table.ITEM.getSpecifiedColumn("name"), value);
+    private boolean modifyName(String value){
+        itemName = value;
+        return modifyColumn("item_name", value);
     }
 
     public boolean modifyUnit(String value){
-        return modifyColumn(Table.ITEM.getSpecifiedColumn("unit"), value);
+        itemUnit = value;
+        return modifyColumn("unit", value);
     }
 
-    public boolean modifyPrice(String value){
-        return modifyColumn(Table.ITEM.getSpecifiedColumn("price"), value);
+    public boolean modifyPrice(double value){
+        latestPrice = value;
+        return modifyColumn("cost", value);
     }
 
     public String getItemName() {
         return itemName;
     }
 
-    public void setItemName(String itemName) {
-        if(itemName.isEmpty() || itemName == null)
-            throw new IllegalArgumentException("Item must have name");
-        else
-            this.itemName = itemName;
+    public boolean setItemName(String itemName) {
+        if(itemName.isEmpty() || itemName == null){
+            System.err.println("Item must have name");
+            return false;
+            }
+        else {
+            return modifyName(itemName);
+        }
     }
 
     public int getItemQty(){
-        db.readTable(new String[]{"*"}, new String[][]{{Table.ITEM.getSpecifiedColumn("name"), itemName}, {"status", "Active"}});
-        return db.getResult().size() - 1;
+        return quantity;
+    }
+
+    public boolean delete(){
+        return modifyColumn("status", 0);
     }
 
     @Override
