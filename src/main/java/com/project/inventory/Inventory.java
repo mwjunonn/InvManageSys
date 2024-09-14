@@ -33,7 +33,7 @@ public class Inventory {
         HashMap<String, Integer> attributeIndex = new HashMap<>();
         db.readTable(Table.ITEM.getColumnName());
         database = db.getResult();
-        String[] columnName = database.get(0).split(Database.spliter);
+        String[] columnName = database.get(0).split(Database.delimiter);
         for (int i = 0; i < columnName.length; i++) {
             for (int j = 0; j < Table.ITEM.getColumnName().length; j++) {
                 if (columnName[i].equals(columnName[j])) {
@@ -44,7 +44,7 @@ public class Inventory {
         }
         
         for (int i = 1; i < database.size(); i++) {
-            String[] value = database.get(i).split(Database.spliter);
+            String[] value = database.get(i).split(Database.delimiter);
             if (value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))].equals("Frozen"))
                 itemList.add(new FrozenItem(value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("name"))],
                         value[attributeIndex.get(Table.ITEM.getSpecifiedColumn("type"))],
@@ -64,7 +64,7 @@ public class Inventory {
         }
 
 //        for (int i = 1; i < database.size(); i++) {
-//            String[] value =  database.get(i).split(Database.spliter);
+//            String[] value =  database.get(i).split(Database.delimiter);
 //            if(value[indexOfType].equals("Frozen"))
 //                itemList.add(new FrozenItem(value[indexOfName]));
 //            else if (value[indexOfType].equals("Dry")) {

@@ -89,7 +89,7 @@ public abstract class User {
         ArrayList<String> list = db.getResult();
         String[] idList = new String[list.size()];
         for(int i = 0; i < list.size(); i++){
-            idList[i] = list.get(i).replaceAll(Database.spliter, "");
+            idList[i] = list.get(i).replaceAll(Database.delimiter, "");
         }
         return idList;
     }
@@ -100,7 +100,7 @@ public abstract class User {
         ArrayList<String> list = db.getResult();
         String[] nameList = new String[list.size()];
         for (int i = 0; i < list.size(); i++) {
-            nameList[i] = list.get(i).replaceAll(Database.spliter, "");
+            nameList[i] = list.get(i).replaceAll(Database.delimiter, "");
         }
         return nameList;
     }
@@ -111,7 +111,7 @@ public abstract class User {
         ArrayList<String> list = db.getResult();
         String[] positionList = new String[list.size()];
         for (int i = 0; i < list.size(); i++) {
-            positionList[i] = list.get(i).replaceAll(Database.spliter, "");
+            positionList[i] = list.get(i).replaceAll(Database.delimiter, "");
         }
         return positionList;
     }
@@ -122,7 +122,7 @@ public abstract class User {
         ArrayList<String> list = db.getResult();
         String[] passwordList = new String[list.size()];
         for (int i = 0; i < list.size(); i++) {
-            passwordList[i] = list.get(i).replaceAll(Database.spliter, "");
+            passwordList[i] = list.get(i).replaceAll(Database.delimiter, "");
         }
         return passwordList;
     }

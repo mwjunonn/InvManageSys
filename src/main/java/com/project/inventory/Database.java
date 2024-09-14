@@ -29,7 +29,7 @@ public class Database{
      *  The split character that to split the column when the ArrayList returned
      *  Can be used for split in String to get String Array
      */
-    public static final String spliter = " \\| " ;
+    public static final String delimiter = " \\| " ;
     private ResultSet result = null;
     /**
      * Try using another constructor that parameter is Table Name(String)
@@ -196,14 +196,14 @@ public class Database{
 
     /**
      * Return whole result with the column name
-     * @return ArrayList of the Result. Index in ArrayList is the particular row of Result and the columns split with spliter '|' . First row is Column name
+     * @return ArrayList of the Result. Index in ArrayList is the particular row of Result and the columns split with delimiter '|' . First row is Column name
      * <br>
      * <p>You can use split in String in particular array index to get the particular value.</p>
-     * <p>{@code SPLITER}constant for split is provided in this class </p>
+     * <p>{@code delimiter}constant for split is provided in this class </p>
      */
     public ArrayList<String> getResult() {
         /*
-            You can get single value with split method, use public constant variable "Spliter" to perform
+            You can get single value with split method, use public constant variable "delimiter" to perform
         */
         try {
             ResultSetMetaData md = result.getMetaData();
