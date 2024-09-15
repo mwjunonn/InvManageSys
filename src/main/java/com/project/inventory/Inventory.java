@@ -1,33 +1,27 @@
 package com.project.inventory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class Inventory {
     public static ArrayList<Item> itemList = new ArrayList<>();
     private static Database db = new Database("inventory");
 
     public Inventory() {
-        startInventory();
+        restartInventory();
     }
 
-    public void printInventory() {
-        String[][] column = {
-                {"-30", "Item Name"},
-                { "-10", "Item Type"},
-                { "-10", "Item quantity"},
-                {"", "Latest cost"}
-        };
-        for(String[] str1 : column){
-            System.out.printf("%" + str1[0] +"s\t", str1[1]);
-        }
-        System.out.println();
-        for (Item item : itemList) {
-            System.out.println(item);
-        }
+    public static ArrayList<Object> getItemList() {
+        ArrayList<Object> obj = (ArrayList<Object>)itemList.clone();
+        obj.add(0, new String[]{
+               "Item Name",
+                "Item Type",
+                "Latest Price",
+                "Item quantity"
+        });
+        return obj;
     }
 
-    public static void startInventory() {
+    public static void restartInventory() {
         HashMap<String, Integer> attributeIndex = new HashMap<>();
         db.readTable(new String[]{Database.all});
         ArrayList<ArrayList<Object>> database = db.getObjResult();
@@ -36,7 +30,7 @@ public class Inventory {
         }
         for (int i = 1; i < database.size(); i++) {
             ArrayList<Object> row = database.get(i);
-            if(!row.get(attributeIndex.get("status")).equals(1))
+            if(!row.get(attributeIndex.get("status")).equals(true))
                 continue;
             itemList.add(new Item((String) row.get(attributeIndex.get("item_id")),
                     (String) row.get(attributeIndex.get("item_name")),
@@ -60,13 +54,18 @@ public class Inventory {
 //        }
     }
 
-    public void addInventory(Item item) {
-        itemList.add(item);
+    public boolean addInventory(Item item) {
+        if(item.getItemId().equals("null") || item.getItemName().isEmpty()){
+            itemList.add(item);
+            return true;
+        }else{
+            return false;
+        }
     }
 
     public Item getItem(int index) {
         if (itemList.isEmpty()) {
-            startInventory();
+            restartInventory();
             return getItem(index);
         } else if (itemList.size() < index + 1)
             return null;
@@ -74,9 +73,23 @@ public class Inventory {
             return itemList.get(index);
     }
 
+    public void deleteItem(Item item) {
+        item.delete();
+        itemList.remove(item);
+    }
+
+    public static boolean checkIdUnique(String id) {
+        for(Item i : itemList){
+            if(i.getItemId().equals(id)){
+                return false;
+            }
+        }
+        return true;
+    }
+
     public Item getItem(String name) {
         if (itemList.isEmpty()) {
-            startInventory();
+            restartInventory();
             return getItem(name);
         }
         for (Item item : itemList) {
@@ -84,6 +97,10 @@ public class Inventory {
                 return item;
         }
         return null;
+    }
+
+    public static void closeInventory(){
+        itemList.clear();
     }
 }
 
