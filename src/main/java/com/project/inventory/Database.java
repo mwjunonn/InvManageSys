@@ -17,6 +17,7 @@ public class Database{
     private static boolean success = false;
     private String tablename;
 
+
     /**
      * Check if the database is success to connect or not
      * @return {@code True} if database connect successfully
@@ -141,17 +142,17 @@ public class Database{
     }
 
     /**
-     * Read the table with additional condition <p>Eg: JOIN</p>
+     * Read the table with condition {@code WHERE} and additional condition <p>Eg: JOIN</p>
      * @return {@code true} means successful, {@code false} means unsuccessful.
      * @param columnName Column Name that would like to get in Result
      * @param condition <p>An multiple array that coupled with column name and the condition value. <br>Eg: [[item_name, "Brown Sugar Pearl"]["item_type", "Frozen"]]</p>
      * @param additional Statement after WHERE clause condition. Eg: JOIN ...
      */
 
-    public boolean readTable(String[] columnName, String[][] condition, String additional) {
+    public boolean readTable(String[] columnName, Object[][] condition, String additional) {
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT ");
-        String[] prmt = new String[condition.length];
+        Object[] prmt = new Object[condition.length];
         for (int i = 0; i < columnName.length; i++) {
             sb.append(columnName[i]);
             if (i < columnName.length - 1)
@@ -163,10 +164,10 @@ public class Database{
             sb.append(" WHERE ");
             for (int i = 0; i < condition.length; i++) {
                 sb.append(condition[i][0]);
-                sb.append(" LIKE ");
+                sb.append(" LIKE ?");
                 prmt[i] = condition[i][1];
                 if (i < condition.length - 1)
-                    sb.append("AND ");
+                    sb.append(" AND ");
             }
         }
         sb.append(additional);
@@ -174,13 +175,34 @@ public class Database{
     } // Read record with condition
 
     /**
-     * Read the table with condition<p>Eg: JOIN</p>
+     * Read the table with condition{@code WHERE} clause
      * @return {@code true} means successful, {@code false} means unsuccessful.
      * @param columnName Column Name that would like to get in Result
      * @param condition <p>An multiple array that coupled with column name and the condition value. <br>Eg: [[item_name, "Brown Sugar Pearl"]["item_type", "Frozen"]]</p>
      */
-    public boolean readTable(String[] columnName, String[][] condition){
+    public boolean readTable(String[] columnName, Object[][] condition){
         return readTable(columnName, condition, "");
+    }
+
+    /**
+     * Read the table with condition<p>Eg: JOIN</p>
+     * This method assuming not using {@code WHERE} clause, please use method {@code readTable(String[] columnName, Object[][] condition, String additional))} or {@code readTable(String[] columnName, Object[][] condition} for using {@code WHERE} clause to prevent SQL injection
+     * @return {@code true} means successful, {@code false} means unsuccessful.
+     * @param columnName Column Name that would like to get in Result
+     * @param condition Statement after WHERE clause condition. Eg: JOIN ...
+     */
+    public boolean readTable(String[] columnName, String condition){
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT ");
+        for (int i = 0; i < columnName.length; i++) {
+            sb.append(columnName[i]);
+            if (i < columnName.length - 1)
+                sb.append(", ");
+        }
+        sb.append(" FROM ");
+        sb.append(tablename).append(" ");
+        sb.append(condition);
+        return execute(sb.toString());
     }
 
     /**
@@ -189,7 +211,7 @@ public class Database{
      * @param columnName Column Name that would like to get in Result
      */
     public boolean readTable(String[] columnName){
-        return readTable(columnName, new String[0][0] , "");
+        return readTable(columnName, new Object[0][0] , "");
     }
 
     /**
@@ -197,16 +219,16 @@ public class Database{
      * @param columnName  Column name that would like to get the result
      * @return  The value of the column in first row of Result
      */
-    public String getResult(String columnName) {
+    public Object getResult(String columnName) {
         try {
             if(!result.isFirst()){
                 return null;
             }
             else{
-                return result.getString(columnName);
+                return result.getObject(columnName);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
         return null;
     }
@@ -246,9 +268,8 @@ public class Database{
     }
 
     /**
-     *
-     *
-     * @return
+     * Return whole  in object with the column name
+     * @return Nested ArrayList of the Result in object. Each ArrayList means row and a row having ArrayList means column. First row is Column name
      */
     public ArrayList<ArrayList<Object>> getObjResult(){
         ArrayList<ArrayList<Object>> values = new ArrayList<>();
@@ -332,17 +353,18 @@ public class Database{
      * Delete the record (Must be with condition)
      * @param condition <p>An multiple array that coupled with column name and the condition value. <br>Eg: [[item_name, "Brown Sugar Pearl"]["item_type", "Frozen"]]</p>
      */
-    public boolean deleteRecord(String[][] condition){
-        String[] prmt = new String[condition.length];
+    public boolean deleteRecord(Object[][] condition){
+        Object[] prmt = new Object[condition.length];
         StringBuilder sb = new StringBuilder();
         sb.append("DELETE FROM ").append(tablename).append(" WHERE ");
         if(condition.length != 0){
             for(int i = 0 ; i < condition.length; i++){
                 sb.append(condition[i][0]).append(" LIKE ? ");
-                if(! condition[i][1].equals("%%") && ! condition[i][1].isEmpty() && condition[i][1] != null) {
+                if(! condition[i][1].equals("%%") && ! ((String)condition[i][1]).isEmpty() && condition[i][1] != null) {
                     prmt[i] = condition[i][1];
                 } else{
-                    throw new IllegalArgumentException("Condition must have values");
+                    System.err.println("Condition must have value.");
+                    return false;
                 }
                 if(i < condition.length - 1){
                     sb.append(" AND ");
