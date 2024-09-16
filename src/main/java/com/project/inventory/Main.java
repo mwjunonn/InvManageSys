@@ -84,9 +84,8 @@ public class Main {
                                 case 3:     //Display all supplier (If don't need cut this out)
                                     break;
                                 case 4:     //All staff details
-                                    System.out.println("Testing");
                                     manager.displayAllUser();
-                                    System.out.println("\n\n");
+                                    System.out.println("\n");
                                     break;
                                 case 5:     //Modify staff details
                                     break;

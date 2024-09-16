@@ -46,12 +46,21 @@ public class Manager extends User {
         String[] email = super.getAllEmail();
         String[] user = new String[userId.length];
         
-        System.out.println("User ID\t\tUser Name\t\tPosition\t\tEmail\t\t");
-        System.out.println("-------\t\t---------\t\t--------\t\t-----\t\t");
+        System.out.println();
+        System.out.printf("%-6s %-10s %-20s %-30s %s\n", "RowNo.", "User ID", "User Name", "Position", "Email");
+        System.out.printf("%-6s %-10s %-20s %-30s %s\n", "------", "-------", "---------", "--------", "-----");
         
         for (int i = 1; i < userId.length; i++) {
-            System.out.println(userId[i] + "\t\t" + userName[i] + "\t\t" + position[i] + "\t\t" + email[i]); 
+            System.out.printf("%-6d %-10s %-20s %-30s %s\n",i, userId[i], userName[i], position[i], email[i]);
         }
+    }
+    
+    public void modifyStaff(String name){
+        
+    }
+    
+    public void modifyStaff(String name, String password){
+        
     }
     
 }
