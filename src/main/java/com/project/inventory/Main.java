@@ -7,8 +7,8 @@ public class Main {
     
     public static void main(String[] args) {
         mainMenu();
-        Inventory inv = new Inventory();
-        inv.printInventory();
+        //Inventory inv = new Inventory();
+        //inv.printInventory();
     }
     
     public static void mainMenu(){
@@ -44,6 +44,7 @@ public class Main {
     
     public static void loginMenu(){
         int choice;
+        int decision;
         String id;
         String password;
         //If found out how to clear screen, enable this two
@@ -60,7 +61,7 @@ public class Main {
             System.out.println("");
             switch(choice){
                 case 1:
-                    User manager = new Manager();
+                    Manager manager = new Manager();
                     
                     System.out.println("Login as Manager"); 
                     System.out.print("ID: ");
@@ -70,22 +71,34 @@ public class Main {
                     System.out.println();
                     if (manager.equals(id) && manager.passwordValid(password)) {
                         System.out.println("Login Successful");
-                        switch (permissionMenu(choice)){
-                            case 1:     //Restock Inventory
-                                break;
-                            case 2:     //Current Stock Report
-                                break;
-                            case 3:     //Display all supplier (If don't need cut this out)
-                                break;
-                            case 4:     //All staff details
-                                break;
-                            case 5:     //Modify staff details
-                                break;
-                            case 6:     //Delete staff
-                                break;
-                            default:
-                                break;
-                        }
+                        System.out.println("Welcome " + manager.getCurrentName() + ".");
+                        System.out.println("---------------------------------------");
+                        
+                        do {
+                            decision = permissionMenu(choice);
+                           switch (decision){
+                                case 1:     //Restock Inventory
+                                    break;
+                                case 2:     //Current Stock Report
+                                    break;
+                                case 3:     //Display all supplier (If don't need cut this out)
+                                    break;
+                                case 4:     //All staff details
+                                    System.out.println("Testing");
+                                    manager.displayAllUser();
+                                    System.out.println("\n\n");
+                                    break;
+                                case 5:     //Modify staff details
+                                    break;
+                                case 6:     //Delete staff
+                                    break;
+                                case 7:
+                                    System.out.println("\nReturning to last page.\n");
+                                    break;
+                                default:
+                                    break;
+                            } 
+                        } while (decision != 7);   
                     }
                     else if (manager.equals(id) && !(manager.passwordValid(password))) {
                         System.out.println("Wrong Password!");
@@ -105,14 +118,24 @@ public class Main {
                     System.out.println();
                     if (inventoryAdmin.equals(id) && inventoryAdmin.passwordValid(password)) {
                         System.out.println("Login Successful");
-                        switch (permissionMenu(choice)){
-                            case 1:     //Restock inventory
-                                break;
-                            case 2:     //Purchase order status
-                                break;
-                            default:
-                                break;
+                        System.out.println("Welcome " + inventoryAdmin.getCurrentName() + ".");
+                        System.out.println("---------------------------------------");
+                        
+                        do{
+                            decision = permissionMenu(choice);
+                            switch (decision){
+                                case 1:     //Restock inventory
+                                    break;
+                                case 2:     //Purchase order status
+                                    break;
+                                case 3:
+                                    System.out.println("\nReturning to last page.\n");
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
+                        while(decision != 3);
                     }
                     else if (inventoryAdmin.equals(id) && !(inventoryAdmin.passwordValid(password))) {
                         System.out.println("Wrong Password! ");
@@ -281,8 +304,9 @@ public class Main {
                         System.out.println("Invalid input. Try again.");
                         System.out.println("");
                     }
+                    return decision;
                 } while ((decision < 1 || decision > 7) || decision != 7);                
-                break;
+                
             case 2:
                 do {
                     System.out.println("1. Restock inventory");
@@ -295,8 +319,9 @@ public class Main {
                         System.out.println("Invalid input. Try again.");
                         System.out.println("");
                     }
+                    return decision;
                 } while ((decision < 1 || decision > 3) || decision != 3);
-                break;
+                
             default:
                 break;
         }

@@ -39,4 +39,19 @@ public class Manager extends User {
         return false;
     }
     
+    public void displayAllUser(){
+        String[] userId = super.getAllId();
+        String[] userName = super.getAllName();
+        String[] position = super.getAllPosition();
+        String[] email = super.getAllEmail();
+        String[] user = new String[userId.length];
+        
+        System.out.println("User ID\t\tUser Name\t\tPosition\t\tEmail\t\t");
+        System.out.println("-------\t\t---------\t\t--------\t\t-----\t\t");
+        
+        for (int i = 1; i < userId.length; i++) {
+            System.out.println(userId[i] + "\t\t" + userName[i] + "\t\t" + position[i] + "\t\t" + email[i]); 
+        }
+    }
+    
 }

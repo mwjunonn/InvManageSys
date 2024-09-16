@@ -127,6 +127,21 @@ public abstract class User {
         return passwordList;
     }
     
+    public String[] getAllEmail(){
+        String[] tempEmail = {"email"};
+        db.readTable(tempEmail);
+        ArrayList<String> list = db.getResult();
+        String[] emailList = new String[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).replaceAll(Database.delimiter, "").equals("")) {
+                emailList[i] = "None";
+            }
+            else
+                emailList[i] = list.get(i).replaceAll(Database.delimiter, "");
+        }
+        return emailList;
+    }
+    
     //Accessor
     public String getName(){
         return name;
@@ -142,6 +157,10 @@ public abstract class User {
     
     public String getId(){
         return user_id;
+    }
+    
+    public String getCurrentName(){
+        return getAllName()[arrayCounter];
     }
     
     // For assigning userID automatically without duplication causing any errors
