@@ -90,7 +90,7 @@ public class Database{
     /**
      * Execute SQL command with avoiding sql injection (More secure)
      * @param sql SQL Query, '?' will be the parameter Example: SELECT * FROM USER WHERE username = ?
-     * @param parameter Parameter that will replace the '?' respectively. Parameter will automatically add enclosed marks ( ' ). Example: marcowong will be 'marcowong'
+     * @param parameter Parameter that will replace the '?' respectively. Parameter will automatically suit the SQL query standard according to the data type. Eg: String "marcowong" will be converted to 'marcowong'
      *  @return {@code true} means successful, {@code false} means unsuccessful.
      */
 
@@ -109,7 +109,12 @@ public class Database{
                 status = stmt.getUpdateCount() > 0;
             return status;
         } catch (SQLException e) {
-            System.err.println(e.getMessage());
+            if(e instanceof CommunicationsException) {
+                System.err.println("MySQL Server are not found...");
+                System.exit(-1);
+            }else{
+                System.err.println(e.getMessage());
+            }
         }
         return false;
     }
@@ -136,7 +141,12 @@ public class Database{
                 result = stmt.getResultSet();
             return status;
         } catch (SQLException e) {
-            System.err.println(e.getMessage());
+            if(e instanceof CommunicationsException){
+                System.err.println("MySQL Server are not found...");
+                System.exit(-1);
+            }else {
+                System.err.println(e.getMessage());
+            }
         }
         return false;
     }
@@ -353,25 +363,24 @@ public class Database{
      * Delete the record (Must be with condition)
      * @param condition <p>An multiple array that coupled with column name and the condition value. <br>Eg: [[item_name, "Brown Sugar Pearl"]["item_type", "Frozen"]]</p>
      */
-    public boolean deleteRecord(Object[][] condition){
+    public boolean deleteRecord(Object[][] condition) {
         Object[] prmt = new Object[condition.length];
         StringBuilder sb = new StringBuilder();
         sb.append("DELETE FROM ").append(tablename).append(" WHERE ");
-        if(condition.length != 0){
-            for(int i = 0 ; i < condition.length; i++){
+        if (condition.length != 0) {
+            for (int i = 0; i < condition.length; i++) {
                 sb.append(condition[i][0]).append(" LIKE ? ");
-                if(! condition[i][1].equals("%%") && ! ((String)condition[i][1]).isEmpty() && condition[i][1] != null) {
+                if (!condition[i][1].equals("%%") && !((String) condition[i][1]).isEmpty() && condition[i][1] != null) {
                     prmt[i] = condition[i][1];
-                } else{
+                } else {
                     System.err.println("Condition must have value.");
                     return false;
                 }
-                if(i < condition.length - 1){
+                if (i < condition.length - 1) {
                     sb.append(" AND ");
                 }
             }
-        }
-        else{
+        } else {
             System.err.println("Condition must have values");
             return false;
         }

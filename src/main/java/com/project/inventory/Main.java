@@ -1,19 +1,23 @@
 package com.project.inventory;
-import java.util.Scanner;
 
-public class Main {
-    static Scanner scan = new Scanner(System.in);
-    static ProcessBuilder processBuilder = new ProcessBuilder(); //For clear screen use, if cannot clear screen delete it
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public abstract class Main {
+    private static Scanner scan = new Scanner(System.in);
+    //static ProcessBuilder processBuilder = new ProcessBuilder(); //For clear screen use, if cannot clear screen delete it
     
     public static void main(String[] args) {
+        Database.startDatabase();
         mainMenu();
-        //Inventory inv = new Inventory();
-        //inv.printInventory();
+        Database.closeDatabase();
     }
     
     public static void mainMenu(){
         User manager = new Manager();
-        int choice;
+        int choice = 0;
         
         do{
             System.out.println("[Welcome to MIXUE Inventory System]");
@@ -23,7 +27,7 @@ public class Main {
             System.out.println("3. Exit");
             System.out.print("Your Choice: ");
             choice = scan.nextInt();
-            
+
             System.out.println("");
             
             switch(choice){
@@ -58,7 +62,7 @@ public class Main {
             System.out.print("Your choice: ");
             choice = scan.nextInt();
             scan.nextLine();
-            System.out.println("");
+            System.out.println();
             switch(choice){
                 case 1:
                     Manager manager = new Manager();
@@ -73,7 +77,7 @@ public class Main {
                         System.out.println("Login Successful");
                         System.out.println("Welcome " + manager.getCurrentName() + ".");
                         System.out.println("---------------------------------------");
-                        
+
                         do {
                             decision = permissionMenu(choice);
                            switch (decision){
@@ -96,8 +100,8 @@ public class Main {
                                     break;
                                 default:
                                     break;
-                            } 
-                        } while (decision != 7);   
+                            }
+                        } while (decision != 7);
                     }
                     else if (manager.equals(id) && !(manager.passwordValid(password))) {
                         System.out.println("Wrong Password!");
@@ -119,7 +123,7 @@ public class Main {
                         System.out.println("Login Successful");
                         System.out.println("Welcome " + inventoryAdmin.getCurrentName() + ".");
                         System.out.println("---------------------------------------");
-                        
+
                         do{
                             decision = permissionMenu(choice);
                             switch (decision){
@@ -299,13 +303,12 @@ public class Main {
                 System.out.print("Choice > ");
                 decision = scan.nextInt();
                     if (decision < 1 || decision > 7) {
-                        System.out.println("");
+                        System.out.println();
                         System.out.println("Invalid input. Try again.");
-                        System.out.println("");
+                        System.out.println();
                     }
-                    return decision;
                 } while ((decision < 1 || decision > 7) || decision != 7);                
-                
+                break;
             case 2:
                 do {
                     System.out.println("1. Restock inventory");
@@ -314,16 +317,219 @@ public class Main {
                     System.out.print("Choice > ");
                     decision = scan.nextInt();
                     if (decision < 1 || decision > 3) {
-                        System.out.println("");
+                        System.out.println();
                         System.out.println("Invalid input. Try again.");
-                        System.out.println("");
+                        System.out.println();
                     }
                     return decision;
                 } while ((decision < 1 || decision > 3) || decision != 3);
-                
             default:
                 break;
         }
         return decision;
+    }
+
+    private static void inventoryMenu(){
+        Inventory.restartInventory();
+        String[] option = new String[]{
+                "Restock inventory",
+                "Search item",
+                "View all item",
+        };
+        System.out.println("Inventory\n---------");
+        int input = getMenuInput(option);
+        switch(option[--input]){
+            case "Restock inventory":
+                int index = chooseItem();
+                if(index != 0)
+                    restockInventory(--index);
+                break;
+            case "View all item":
+                printInventory();
+                System.out.println("Choose your operation: ");
+                String[] option1 = new String[]{
+                        "Select particular item",
+                };
+                input = getMenuInput(option1);
+                if(input != 0){
+                    input = chooseItem();
+                    if(input != 0) {
+                        inventoryOperation(input - 1);
+                    }
+                }
+                break;
+        }
+        Inventory.closeInventory();
+    }
+
+    private static void restockInventory(int index){
+        boolean validation;
+        Item item = Inventory.getItem(index);
+        int restockQuantity = 0;
+        do {
+            validation = false;
+            System.out.println("Item name = " + item.getItemName());
+            System.out.println("Item quantity = " + item.getQuantity());
+            System.out.println("Restock quantity = ");
+            if (scan.hasNextInt()) {
+                restockQuantity = scan.nextInt();
+                validation = true;
+            } else {
+                System.out.println("Error input! Please try again.");
+            }
+        } while (!validation);
+        item.setQuantity(item.getQuantity() + restockQuantity);
+    }
+
+    private static int chooseItem() {
+        ArrayList<Item> item = Inventory.getItemList();
+        int input = 0;
+        do {
+            System.out.println("Choose your item with the number.");
+            for (int i = 0; i < item.size(); i++) {
+                System.out.printf("%d. %s\n", i + 1, item.get(i).getItemName());
+            }
+            if(scan.hasNextInt()) {
+                input = scan.nextInt();
+            }else{
+                input = item.size() + 1;
+            }
+            if(input > item.size()){
+                System.out.println("Error input! Please try again.");
+            }
+        } while (input < 0 || input > item.size());
+        return input;
+    }
+
+    private static void printInventory() {
+/*
+        ArrayList<Object> table = Inventory.getItemList();
+        for(String[] str1 : ((String[][])table.getFirst())){
+            System.out.printf("%" + str1[0] +"s\t", str1[1]);
+        }
+        System.out.println();
+        table.removeFirst();
+        for(Object item: table.toArray()){
+            System.out.println(item);
+        }
+*/
+        InventoryUI inventoryUI = new InventoryUI();
+        inventoryUI.showInventoryGui(Inventory.getItemListWithColumns());
+    }
+
+    private static void inventoryOperation(int index) {
+        System.out.println("What you would like to do ?");
+        String[] option = new String[]{
+                "Update item",
+                "Delete item",
+        };
+        int input = getMenuInput(option);
+        switch (option[--input]) {
+            case "Update item":
+                updateItem(index);
+                break;
+            case "Delete item":
+                //deleteItem();
+                break;
+        }
+    }
+
+    private static void updateItem(int index) {
+        boolean validation = true;
+        String strInput = "";
+        Item item = Inventory.getItem(index);
+        List<String> list = new ArrayList<String>(Arrays.asList(item.toString().split("\t")));
+        String[] temp = list.getLast().split("/");
+        list.removeLast();
+        Collections.addAll(list, temp);
+        String[] itemData = list.toArray(new String[0]);
+        String[] itemDataName = new String[]{
+                "Item name ",
+                "Item type",
+                "Price",
+                "Quantity",
+                "Unit"
+        };
+        //Methods should be start at here
+        for (int i = 0; i < itemData.length; i++)
+            System.out.printf("%s: %s\n", itemDataName[i], itemData[i]);
+        System.out.println();
+        System.out.println("What you would like to update ?");
+        int input = getMenuInput(itemDataName);
+        if (input == 0)
+            return;
+        else if (itemDataName[--input].equals("Unit")) {
+            System.out.println("Current unit = " + itemData[itemData.length - 1]);
+            System.out.print("New unit (Eg : 1kg)= ");
+        } else {
+            System.out.print("New " + itemDataName[--input] + " = ");
+            if (itemDataName[input].equals("Price"))
+                System.out.print("RM ");
+        }
+        scan.nextLine(); //Clear the buffer
+        strInput = scan.nextLine();
+        switch (itemDataName[input]) {
+            case "Item name":
+                item.setItemName(strInput);
+                break;
+
+            case "Item type":
+                item.setItemType(strInput);
+                break;
+
+            case "Quantity":
+                try {
+                    item.setQuantity(Double.parseDouble(strInput));
+                } catch (NumberFormatException e) {
+                    System.out.println("Input is not number");
+                    validation = false;
+                }
+                break;
+
+            case "Price":
+                try {
+                    item.setLatestPrice(Double.parseDouble(strInput));
+                } catch (NumberFormatException e) {
+                    System.out.println("Input is not number");
+                    validation = false;
+                }
+                break;
+
+            case "Unit":
+                if(strInput.matches("^\\d+(?:\\.\\d+)?[a-zA-Z]+$")){//Means matching 1.2kg or 12kg
+                    Matcher matcher = Pattern.compile("\\d+(?:\\.\\d+)?").matcher(strInput); //Number part
+                    int indexOfSplit = 0;
+                    if(matcher.find())
+                        indexOfSplit = matcher.end();
+                    String[] subStr = {strInput.substring(0, indexOfSplit), strInput.substring(indexOfSplit)};
+                    item.setPer_unit(Double.parseDouble(subStr[0]));
+                    item.setItemUnit(subStr[1]);
+                }
+        }
+    }
+
+    private static int getMenuInput(String[] option) {
+        int input = 0;
+        do{
+            System.out.println("Press 0 to exit\n");
+            System.out.println("Please choose your option: ");
+            for (int i = 0; i < option.length; i++) {
+                System.out.printf("%d. %s\n", i + 1, option[i]);
+            }
+            System.out.print("Choice > ");
+            if (scan.hasNextInt())
+                input = scan.nextInt();
+            else {
+                System.out.println("Error input, please try again !");
+                scan.next();
+                input = option.length + 8;
+            }
+            if(input > option.length + 1){
+                System.out.println();
+                System.out.println("Invalid input. Try again.");
+                System.out.println();
+            }
+        }while(input < 0 || input > option.length + 1);
+        return input;
     }
 }
