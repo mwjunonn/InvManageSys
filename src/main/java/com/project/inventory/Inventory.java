@@ -3,14 +3,14 @@ package com.project.inventory;
 import java.util.*;
 
 public class Inventory {
-    public static ArrayList<Item> itemList = new ArrayList<>();
+    private static ArrayList<Item> itemList = new ArrayList<>();
     private static Database db = new Database("inventory");
 
     public Inventory() {
         restartInventory();
     }
 
-    public static ArrayList<Object> getItemList() {
+    public static ArrayList<Object> getItemListWithColumns() {
         ArrayList<Object> obj = (ArrayList<Object>)itemList.clone();
         obj.add(0, new String[]{
                "Item Name",
@@ -19,6 +19,10 @@ public class Inventory {
                 "Item quantity"
         });
         return obj;
+    }
+
+    public static ArrayList<Item> getItemList() {
+        return (ArrayList<Item>)itemList.clone();
     }
 
     public static void restartInventory() {
@@ -35,9 +39,9 @@ public class Inventory {
             itemList.add(new Item((String) row.get(attributeIndex.get("item_id")),
                     (String) row.get(attributeIndex.get("item_name")),
                     (String) row.get(attributeIndex.get("item_type")),
-                    (Integer) row.get(attributeIndex.get("quantity")),
+                    (Double) row.get(attributeIndex.get("quantity")),
                     (Double) row.get(attributeIndex.get("cost")),
-                    (Integer) row.get(attributeIndex.get("per_unit")),
+                    (Double) row.get(attributeIndex.get("per_unit")),
                     (String) row.get(attributeIndex.get("unit"))
             ));
         }
@@ -63,7 +67,7 @@ public class Inventory {
         }
     }
 
-    public Item getItem(int index) {
+    public static Item getItem(int index) {
         if (itemList.isEmpty()) {
             restartInventory();
             return getItem(index);
@@ -73,7 +77,7 @@ public class Inventory {
             return itemList.get(index);
     }
 
-    public void deleteItem(Item item) {
+    public static void deleteItem(Item item) {
         item.delete();
         itemList.remove(item);
     }
@@ -87,7 +91,7 @@ public class Inventory {
         return true;
     }
 
-    public Item getItem(String name) {
+    public static Item getItem(String name) {
         if (itemList.isEmpty()) {
             restartInventory();
             return getItem(name);

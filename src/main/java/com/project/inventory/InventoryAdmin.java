@@ -6,12 +6,12 @@ public class InventoryAdmin extends User {
     public InventoryAdmin(String name, String password, String email){
         super(name, password, email);
         super.position = position;
-        super.userCount++;
+        userCount++;
     }
     
     public InventoryAdmin(String name, String password){
         super(name, password, "");
-        super.userCount++;
+        userCount++;
     }
     
     public InventoryAdmin(){
