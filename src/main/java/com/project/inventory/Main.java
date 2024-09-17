@@ -2,14 +2,14 @@ package com.project.inventory;
 
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
 public abstract class Main {
     private static Scanner scan = new Scanner(System.in);
     //static ProcessBuilder processBuilder = new ProcessBuilder(); //For clear screen use, if cannot clear screen delete it
     
     public static void main(String[] args) {
+        Locale.setDefault(Locale.ENGLISH);
         Database.startDatabase();
         mainMenu();
         Database.closeDatabase();
@@ -82,6 +82,7 @@ public abstract class Main {
                             decision = permissionMenu(choice);
                            switch (decision){
                                 case 1:     //Restock Inventory
+                                    inventoryMenu();
                                     break;
                                 case 2:     //Current Stock Report
                                     break;
@@ -293,7 +294,7 @@ public abstract class Main {
             // 1 = Manager, 2 = Inventory Admin
             case 1:
                 do {
-                System.out.println("1. Restock inventory");         //order item @ purchase order
+                System.out.println("1. Inventory");         //order item @ purchase order
                 System.out.println("2. Current Stock Report");
                 System.out.println("3. Display all supplier");      //Not sure put here or wat, people incharge supplier can modify this
                 System.out.println("4. All staff details");
@@ -308,10 +309,10 @@ public abstract class Main {
                         System.out.println();
                     }
                     return decision;
-                } while ((decision < 1 || decision > 7) || decision != 7);                
+                } while (decision < 1 || decision > 7);
             case 2:
                 do {
-                    System.out.println("1. Restock inventory");
+                    System.out.println("1. Inventory");
                     System.out.println("2. Purchase order status");
                     System.out.println("3. Return to last page");
                     System.out.print("Choice > ");
@@ -322,7 +323,7 @@ public abstract class Main {
                         System.out.println();
                     }
                     return decision;
-                } while ((decision < 1 || decision > 3) || decision != 3);
+                } while (decision < 1 || decision > 3);
             default:
                 break;
         }
@@ -333,30 +334,25 @@ public abstract class Main {
         Inventory.restartInventory();
         String[] option = new String[]{
                 "Restock inventory",
-                "Search item",
-                "View all item",
+                "Create item",
+                "Item operation",
         };
         System.out.println("Inventory\n---------");
         int input = getMenuInput(option);
         switch(option[--input]){
             case "Restock inventory":
-                int index = chooseItem();
-                if(index != 0)
-                    restockInventory(--index);
+                int index = selectInventory();
+                if(index != -1)
+                    restockInventory(index);
                 break;
-            case "View all item":
-                printInventory();
-                System.out.println("Choose your operation: ");
-                String[] option1 = new String[]{
-                        "Select particular item",
-                };
-                input = getMenuInput(option1);
-                if(input != 0){
-                    input = chooseItem();
-                    if(input != 0) {
-                        inventoryOperation(input - 1);
-                    }
+            case "Item operation":
+                input = selectInventory();
+                if(input != -1) {
+                    inventoryOperation(input);
                 }
+                break;
+            case "Create item":
+                //createItem();
                 break;
         }
         Inventory.closeInventory();
@@ -370,7 +366,7 @@ public abstract class Main {
             validation = false;
             System.out.println("Item name = " + item.getItemName());
             System.out.println("Item quantity = " + item.getQuantity());
-            System.out.println("Restock quantity = ");
+            System.out.print("Current item quantity = " + item.getQuantity() + "+ ");
             if (scan.hasNextInt()) {
                 restockQuantity = scan.nextInt();
                 validation = true;
@@ -381,6 +377,7 @@ public abstract class Main {
         item.setQuantity(item.getQuantity() + restockQuantity);
     }
 
+/*   Deprecated : Replace with selectInventory();
     private static int chooseItem() {
         ArrayList<Item> item = Inventory.getItemList();
         int input = 0;
@@ -400,22 +397,7 @@ public abstract class Main {
         } while (input < 0 || input > item.size());
         return input;
     }
-
-    private static void printInventory() {
-/*
-        ArrayList<Object> table = Inventory.getItemList();
-        for(String[] str1 : ((String[][])table.getFirst())){
-            System.out.printf("%" + str1[0] +"s\t", str1[1]);
-        }
-        System.out.println();
-        table.removeFirst();
-        for(Object item: table.toArray()){
-            System.out.println(item);
-        }
 */
-        InventoryUI inventoryUI = new InventoryUI();
-        inventoryUI.showInventoryGui(Inventory.getItemListWithColumns());
-    }
 
     private static void inventoryOperation(int index) {
         System.out.println("What you would like to do ?");
@@ -429,83 +411,161 @@ public abstract class Main {
                 updateItem(index);
                 break;
             case "Delete item":
-                //deleteItem();
+                deleteItem(index);
                 break;
         }
     }
 
     private static void updateItem(int index) {
-        boolean validation = true;
+        boolean validation;
         String strInput = "";
         Item item = Inventory.getItem(index);
-        List<String> list = new ArrayList<String>(Arrays.asList(item.toString().split("\t")));
-        String[] temp = list.getLast().split("/");
-        list.removeLast();
-        Collections.addAll(list, temp);
-        String[] itemData = list.toArray(new String[0]);
         String[] itemDataName = new String[]{
-                "Item name ",
+                "Item name",
                 "Item type",
                 "Price",
                 "Quantity",
                 "Unit"
         };
+        String[] itemData = new String[]{
+                item.getItemName(),
+                item.getItemType(),
+                String.valueOf(item.getLatestPrice()),
+                String.valueOf(item.getQuantity()),
+                item.getItemType()
+        };
+        showItemDetails(itemDataName, itemData);
         //Methods should be start at here
+        do {
+            validation = true;
+            System.out.println();
+            System.out.println("What you would like to update ?");
+            int input = getMenuInput(itemDataName);
+            input--;
+            if (input == -1)
+                return;
+            else if (itemDataName[input].equals("Unit")) {
+                System.out.println("Current unit = " + itemData[itemData.length - 1]);
+                System.out.print("New unit (Eg : 1kg)= ");
+            } else {
+                System.out.print("New " + itemDataName[input] + " = ");
+                if (itemDataName[input].equals("Price"))
+                    System.out.print("RM ");
+            }
+            strInput = scan.nextLine();
+            switch (itemDataName[input]) {
+                case "Item name":
+                    validation = item.setItemName(strInput);
+                    break;
+
+                case "Item type":
+                    validation = item.setItemType(strInput);
+                    break;
+
+                case "Quantity":
+                    try {
+                        validation = item.setQuantity(Double.parseDouble(strInput));
+                    } catch (NumberFormatException e) {
+                        System.out.println("Input is not number");
+                        validation = false;
+                    }
+                    break;
+
+                case "Price":
+                    try {
+                        validation = item.setLatestPrice(Double.parseDouble(strInput));
+                    } catch (NumberFormatException e) {
+                        System.out.println("Input is not number");
+                        validation = false;
+                    }
+                    break;
+
+                case "Unit":
+                    validation = updateUnit(index, strInput);
+                    break;
+            }
+            System.out.println(validation ? "Item updated successfully" : "Item update failed");
+        }while (!validation);
+    }
+
+    public static boolean updateUnit(int index, String unit){
+        if (unit.matches("^\\d+(?:\\.\\d+)?[a-zA-Z]+$")) {//Means matching 1.2kg or 12kg
+            Matcher matcher = Pattern.compile("\\d+(?:\\.\\d+)?").matcher(unit); //Number part
+            int indexOfSplit = 0;
+            if (matcher.find())//Find if there have number part, should have.
+                indexOfSplit = matcher.end();
+            else
+                throw new InputMismatchException("Something error when finding the number part");
+            String[] subStr = {unit.substring(0, indexOfSplit), unit.substring(indexOfSplit)};
+            if(Inventory.getItem(index).getUnit().equalsIgnoreCase(subStr[1])) {
+                double adjustQuantity = promptAdjustQuantity(index, Double.parseDouble(subStr[0]));
+                if(adjustQuantity != 0.0)
+                    Inventory.getItem(index).setQuantity(adjustQuantity);
+            }
+            Inventory.getItem(index).setItemUnit(Double.parseDouble(subStr[0]), subStr[1]);
+            return true;
+        }else{
+            System.out.println("Input is not following the format");
+            return false;
+        }
+    }
+
+    public static double promptAdjustQuantity(int index, double per_unit) {
+        System.out.println("Looks like same units is entered, do you want to get the adjustment of quantity ?");
+        String[] option = new String[]{
+                "Yes, I want the latest quantity according to my edited unit.",
+                "No, just ignored it."
+        };
+        int input;
+        do {
+            input = getMenuInput(option);
+        }while(input == 0);
+        if(option[--input].equals("Yes, I want the latest quantity according to my edited unit.")) {
+                System.out.printf("Current quantity : %.2f/%s\n", Inventory.getItem(index).getQuantity(), Inventory.getItem(index).getItemUnit());
+                System.out.printf("The adjusted quantity is : %.2f/%.2f%s\n", Inventory.adjustQuantity(index, per_unit), per_unit, Inventory.getItem(index).getUnit());
+                System.out.println("Do you accept the adjustment?");
+                String[] option2 = new String[]{
+                        "Yes", "No"
+                };
+                input = getMenuInput(option2);
+                if(input == 1)
+                    return Inventory.adjustQuantity(index, per_unit);
+        }
+        return 0.0;
+    }
+
+    private static void deleteItem(int index){
+        Item item = Inventory.getItem(index);
+        showItemDetails(new String[]{
+                "Item name ",
+                "Item type",
+                "Price",
+                "Quantity",
+                "Unit"
+        }, new String[]{
+                item.getItemName(),
+                item.getItemType(),
+                String.valueOf(item.getLatestPrice()),
+                String.valueOf(item.getQuantity()),
+                item.getItemUnit()
+        });
+        System.out.println("Do you want to delete this item? ");
+        System.out.print("If yes, Please type 'Yes' : ");
+        String input = scan.nextLine();
+        if(input.equals("Yes")){
+            Inventory.deleteItem(item);
+        }
+    }
+
+    public static int selectInventory(){
+        InventoryUI inventoryUI = new InventoryUI(Inventory.getItemListWithColumns());
+        inventoryUI.inventoryListGui();
+        return inventoryUI.getItemSelectedIndex();
+    }
+
+    private static void showItemDetails(String[] itemDataName, String[] itemData){
         for (int i = 0; i < itemData.length; i++)
             System.out.printf("%s: %s\n", itemDataName[i], itemData[i]);
-        System.out.println();
-        System.out.println("What you would like to update ?");
-        int input = getMenuInput(itemDataName);
-        if (input == 0)
-            return;
-        else if (itemDataName[--input].equals("Unit")) {
-            System.out.println("Current unit = " + itemData[itemData.length - 1]);
-            System.out.print("New unit (Eg : 1kg)= ");
-        } else {
-            System.out.print("New " + itemDataName[--input] + " = ");
-            if (itemDataName[input].equals("Price"))
-                System.out.print("RM ");
-        }
-        scan.nextLine(); //Clear the buffer
-        strInput = scan.nextLine();
-        switch (itemDataName[input]) {
-            case "Item name":
-                item.setItemName(strInput);
-                break;
-
-            case "Item type":
-                item.setItemType(strInput);
-                break;
-
-            case "Quantity":
-                try {
-                    item.setQuantity(Double.parseDouble(strInput));
-                } catch (NumberFormatException e) {
-                    System.out.println("Input is not number");
-                    validation = false;
-                }
-                break;
-
-            case "Price":
-                try {
-                    item.setLatestPrice(Double.parseDouble(strInput));
-                } catch (NumberFormatException e) {
-                    System.out.println("Input is not number");
-                    validation = false;
-                }
-                break;
-
-            case "Unit":
-                if(strInput.matches("^\\d+(?:\\.\\d+)?[a-zA-Z]+$")){//Means matching 1.2kg or 12kg
-                    Matcher matcher = Pattern.compile("\\d+(?:\\.\\d+)?").matcher(strInput); //Number part
-                    int indexOfSplit = 0;
-                    if(matcher.find())
-                        indexOfSplit = matcher.end();
-                    String[] subStr = {strInput.substring(0, indexOfSplit), strInput.substring(indexOfSplit)};
-                    item.setPer_unit(Double.parseDouble(subStr[0]));
-                    item.setItemUnit(subStr[1]);
-                }
-        }
     }
 
     private static int getMenuInput(String[] option) {
@@ -530,6 +590,7 @@ public abstract class Main {
                 System.out.println();
             }
         }while(input < 0 || input > option.length + 1);
+        scan.nextLine(); //Clear the buffer
         return input;
     }
 }

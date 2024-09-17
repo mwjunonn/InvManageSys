@@ -67,6 +67,11 @@ public class Inventory {
         }
     }
 
+    public static double adjustQuantity(int index, double newPerUnit){
+        Item item = itemList.get(index);
+        return item.getQuantity() / (newPerUnit / item.getPer_unit());
+    }
+
     public static Item getItem(int index) {
         if (itemList.isEmpty()) {
             restartInventory();

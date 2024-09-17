@@ -50,16 +50,22 @@ public class Item{
         return itemType;
     }
 
-    public String getItemUnit() {
+    public double getPer_unit(){
+        return per_unit;
+    }
+
+    public String getUnit(){
         return itemUnit;
+    }
+    public String getItemUnit() {
+        if(per_unit % 1 != 0) //Per_unit is double
+            return String.format("%.2f%s", per_unit, itemUnit);
+        else //Per_unit is integer
+            return String.format("%d%s",(int)per_unit, itemUnit);
     }
 
     public double getLatestPrice() {
         return latestPrice;
-    }
-
-    public double getPer_unit() {
-        return per_unit;
     }
 
     //Setter
@@ -73,9 +79,13 @@ public class Item{
         return modifyColumn("item_type", type);
     }
 
-    public boolean setItemUnit(String unit){
+    public boolean setItemUnit(double per_unit, String unit){
+        this.per_unit = per_unit;
         this.itemUnit = unit;
-        return modifyColumn("unit", unit);
+        return modifyColumn(new Object[][]{
+                {"unit", unit},
+                {"per_unit", per_unit},
+        });
     }
 
     public boolean setLatestPrice(double price){
@@ -91,19 +101,18 @@ public class Item{
             return false;
     }
 
-    public boolean setPer_unit(double per_unit) {
-        this.per_unit = per_unit;
-        return modifyColumn("per_unit", per_unit);
-    }
-
     private boolean checkItemName(String itemName){
         return !(itemName.isEmpty() || itemName.equals("null"));
     }
 
     private boolean modifyColumn(String columnName ,Object value){
-        db.updateTable(new Object[][]{
-                {columnName, value}
-        }, new Object[][]{
+        return modifyColumn(new Object[][]{{columnName, value}});
+    }
+
+    private boolean modifyColumn(Object[][] columnNameWIthValue){
+        db.updateTable(
+                columnNameWIthValue,
+                new Object[][]{
                 {"item_id", itemId}
         });
         return true;
