@@ -185,4 +185,13 @@ public abstract class User {
                 "\nPassword: " + password + 
                 "\nPosition: " + position;
     }
+
+    /**
+     * Use this enum to divide the permission of Inventory
+     */
+    public enum Permission {
+        FULL_CONTROL,
+        ADMIN,
+        GENERAL
+    }
 }
