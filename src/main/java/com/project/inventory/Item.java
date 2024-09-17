@@ -3,8 +3,8 @@ package com.project.inventory;
 
 
 public class Item{
-    private static Database db = new Database("inventory");
     private String itemId ="null", itemName, itemType, itemUnit;
+    private static Database db = new Database("inventory");
     private double latestPrice, quantity, per_unit;
 
 
@@ -110,11 +110,13 @@ public class Item{
     }
 
     private boolean modifyColumn(Object[][] columnNameWIthValue){
-        db.updateTable(
+        DatabaseThread dbb = new DatabaseThread("inventory", DatabaseThread.TypeOfQuery.UPDATE);
+        dbb.updateTable(
                 columnNameWIthValue,
                 new Object[][]{
                 {"item_id", itemId}
         });
+        dbb.start();
         return true;
     }
 
@@ -144,8 +146,10 @@ public class Item{
         if(checkDatabase()){
             return false;
         }else {
-            db.insertTable(new String[]{"item_id", "item_name", "item_type", "quantity", "cost", "per_unit", "unit"},
+            DatabaseThread dbb = new DatabaseThread("inventory", DatabaseThread.TypeOfQuery.INSERT);
+            dbb.insertTable(new String[]{"item_id", "item_name", "item_type", "quantity", "cost", "per_unit", "unit"},
                     new String[]{itemId, itemName, itemType, String.valueOf(quantity), String.valueOf(latestPrice), String.valueOf(per_unit), itemUnit});
+            dbb.start();
             return true;
         }
     }

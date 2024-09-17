@@ -2,17 +2,20 @@ package com.project.inventory;
 
 import java.util.*;
 
-public class Inventory {
+/**
+ * A ItemBuilder, one and only one.
+ */
+public class Inventory implements Runnable{
     private static ArrayList<Item> itemList = new ArrayList<>();
     private static Database db = new Database("inventory");
+    private static Inventory inventory = new Inventory();
 
-    public Inventory() {
-        restartInventory();
+    private Inventory() {
     }
 
     public static ArrayList<Object> getItemListWithColumns() {
         ArrayList<Object> obj = (ArrayList<Object>)itemList.clone();
-        obj.add(0, new String[]{
+        obj.addFirst(new String[]{
                "Item Name",
                 "Item Type",
                 "Latest Price",
@@ -58,7 +61,9 @@ public class Inventory {
 //        }
     }
 
-    public boolean addInventory(Item item) {
+
+
+    public static boolean addInventory(Item item) {
         if(item.getItemId().equals("null") || item.getItemName().isEmpty()){
             itemList.add(item);
             return true;
@@ -77,7 +82,7 @@ public class Inventory {
             restartInventory();
             return getItem(index);
         } else if (itemList.size() < index + 1)
-            return null;
+            return new Item();
         else
             return itemList.get(index);
     }
@@ -96,20 +101,17 @@ public class Inventory {
         return true;
     }
 
-    public static Item getItem(String name) {
-        if (itemList.isEmpty()) {
-            restartInventory();
-            return getItem(name);
-        }
-        for (Item item : itemList) {
-            if(item.getItemName().equals(name))
-                return item;
-        }
-        return null;
-    }
-
     public static void closeInventory(){
         itemList.clear();
+    }
+
+    public static Inventory getInstance(){
+        return inventory;
+    }
+
+    @Override
+    public void run() {
+        restartInventory();
     }
 }
 

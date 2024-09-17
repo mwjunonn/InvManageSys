@@ -1,28 +1,26 @@
 package com.project.inventory;
 
 import com.mysql.cj.jdbc.exceptions.CommunicationsException;
-
 import java.sql.*;
-import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 
-/*
-* Made by Mr. Wong Jun Onn(Marco)
+/**
+ * <p>Dependency : MySQL Connector/J  V8.0.31++</p>
 * To achieve CRUD action. For this system, create are not required.
 * Can use the database methods directly with using execute() methods
+ *
+ * @author Mr. Wong Jun Onn(Marco)
 */
 
-public class Database{
+public class Database {
     private static Connection con;
     private static boolean success = false;
-    private String tablename;
-
-
+    private String tableName;
     /**
      * Check if the database is success to connect or not
      * @return {@code True} if database connect successfully
      */
-    public boolean isSuccess() {
+    public static boolean isSuccess() {
         return success;
     }
 
@@ -38,8 +36,6 @@ public class Database{
      * Try using another constructor that parameter is Table Name(String)
      */
     public Database() {
-        if(!success)
-            startDatabase();
     }
 
     public static void startDatabase(){
@@ -67,7 +63,7 @@ public class Database{
      */
     public Database(String tablename) {
         this();
-        this.tablename = tablename;
+        this.tableName = tablename;
     }
 
     public static void closeDatabase(){
@@ -78,6 +74,10 @@ public class Database{
         }catch(SQLException e){
             System.err.println(e.getMessage());
         }
+    }
+
+    public String getTablename() {
+        return tableName;
     }
 
     private Object nullToBlank(Object value){
@@ -93,8 +93,7 @@ public class Database{
      * @param parameter Parameter that will replace the '?' respectively. Parameter will automatically suit the SQL query standard according to the data type. Eg: String "marcowong" will be converted to 'marcowong'
      *  @return {@code true} means successful, {@code false} means unsuccessful.
      */
-
-    public boolean execute(String sql, Object[] parameter) {
+    public synchronized boolean execute(String sql, Object[] parameter) {
         try {
             PreparedStatement stmt = con.prepareStatement(sql,ResultSet. TYPE_SCROLL_INSENSITIVE,
                     ResultSet. CONCUR_UPDATABLE);
@@ -121,12 +120,11 @@ public class Database{
 
     /**
      * Execute SQL command directly
-     * <p>WARNING : Use this method and directly with concat the string may be caused SQL injection happen. To avoid this, please use alternative execute method {@code execute(String sql, String[] parameter)}</p>
+     * <p>WARNING : Use this method and directly with concat the string may be caused SQL injection happen. To avoid this, please use alternative execute method {@code execute(String sql, Object[] parameter)}</p>
      * @param sql SQL command that would like to execute
      * @return {@code true} means successful, {@code false} means unsuccessful.
      */
-
-    protected boolean execute(String sql){
+        boolean execute(String sql){
         String[] dangerClause = {"DROP", "DELETE", "GRANT", "TRUNCATE"};
         try {
             for(String str: dangerClause){
@@ -169,7 +167,7 @@ public class Database{
                 sb.append(", ");
         }
         sb.append(" FROM ");
-        sb.append(tablename);
+        sb.append(tableName);
         if(condition.length != 0) {
             sb.append(" WHERE ");
             for (int i = 0; i < condition.length; i++) {
@@ -191,6 +189,7 @@ public class Database{
      * @param condition <p>An multiple array that coupled with column name and the condition value. <br>Eg: [[item_name, "Brown Sugar Pearl"]["item_type", "Frozen"]]</p>
      */
     public boolean readTable(String[] columnName, Object[][] condition){
+
         return readTable(columnName, condition, "");
     }
 
@@ -210,7 +209,7 @@ public class Database{
                 sb.append(", ");
         }
         sb.append(" FROM ");
-        sb.append(tablename).append(" ");
+        sb.append(tableName).append(" ");
         sb.append(condition);
         return execute(sb.toString());
     }
@@ -312,7 +311,7 @@ public class Database{
      */
     public boolean insertTable(String[] columnName, Object[] values){
         StringBuilder sb = new StringBuilder();
-        sb.append("INSERT INTO ").append(tablename).append(" (");
+        sb.append("INSERT INTO ").append(tableName).append(" (");
         for(int i = 0; i < columnName.length; i++){
             sb.append(columnName[i]);
             if(i < columnName.length - 1){
@@ -338,7 +337,7 @@ public class Database{
     public boolean updateTable(Object[][] values, Object[][] condition){
         Object[] prmt = new Object[condition.length + values.length];
         StringBuilder sb = new StringBuilder();
-        sb.append("UPDATE ").append(tablename).append(" SET ");
+        sb.append("UPDATE ").append(tableName).append(" SET ");
         for(int i = 0 ; i < values.length; i++) {
             sb.append((String)values[i][0]).append(" = ? ");
             prmt[i] = values[i][1];
@@ -366,7 +365,7 @@ public class Database{
     public boolean deleteRecord(Object[][] condition) {
         Object[] prmt = new Object[condition.length];
         StringBuilder sb = new StringBuilder();
-        sb.append("DELETE FROM ").append(tablename).append(" WHERE ");
+        sb.append("DELETE FROM ").append(tableName).append(" WHERE ");
         if (condition.length != 0) {
             for (int i = 0; i < condition.length; i++) {
                 sb.append(condition[i][0]).append(" LIKE ? ");
@@ -386,4 +385,9 @@ public class Database{
         }
         return execute(sb.toString(), prmt);
     }
+
+    public void run(String sql){;
+    }
+
+
 }

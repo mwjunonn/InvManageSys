@@ -1,6 +1,5 @@
 package com.project.inventory;
 
-
 import java.util.*;
 import java.util.regex.*;
 
@@ -13,6 +12,7 @@ public abstract class Main {
         Database.startDatabase();
         mainMenu();
         Database.closeDatabase();
+        System.exit(0);
     }
     
     public static void mainMenu(){
@@ -331,7 +331,7 @@ public abstract class Main {
     }
 
     private static void inventoryMenu(){
-        Inventory.restartInventory();
+        Thread.startVirtualThread(Inventory.getInstance());
         String[] option = new String[]{
                 "Restock inventory",
                 "Create item",
@@ -339,7 +339,10 @@ public abstract class Main {
         };
         System.out.println("Inventory\n---------");
         int input = getMenuInput(option);
-        switch(option[--input]){
+        if(--input == -1){
+            return;
+        }
+        switch(option[input]){
             case "Restock inventory":
                 int index = selectInventory();
                 if(index != -1)
@@ -598,8 +601,6 @@ public abstract class Main {
         int choice = 0;
         Supplier supplierManager = new Supplier();
         String[][] supplier = supplierManager.getAllSupplierInfo();
-
-
 
         do{
             try{

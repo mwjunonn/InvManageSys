@@ -18,7 +18,6 @@ public class InventoryUI extends JFrame {
     JDialog dialog = new JDialog(this, Dialog.ModalityType.DOCUMENT_MODAL);
     ArrayList<Object> items;
 
-
     public InventoryUI() {
         super("Inventory Management System");
         System.setProperty("javax.imageio.plugins.png.convertToRGB", "true");
