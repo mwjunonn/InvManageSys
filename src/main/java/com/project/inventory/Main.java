@@ -307,8 +307,8 @@ public abstract class Main {
                         System.out.println("Invalid input. Try again.");
                         System.out.println();
                     }
+                    return decision;
                 } while ((decision < 1 || decision > 7) || decision != 7);                
-                break;
             case 2:
                 do {
                     System.out.println("1. Restock inventory");
