@@ -593,4 +593,587 @@ public abstract class Main {
         scan.nextLine(); //Clear the buffer
         return input;
     }
+
+    private static void supplierMenu(){
+        int choice = 0;
+        Supplier supplierManager = new Supplier();
+        String[][] supplier = supplierManager.getAllSupplierInfo();
+
+
+
+        do{
+            try{
+                System.out.println("-----------------");
+                System.out.println("| Supplier Menu |");
+                System.out.println("-----------------");
+                System.out.println("1. View All Supplier Details");
+                System.out.println("2. View All Supply Item Details");
+                System.out.println("3. Add New Supplier");
+                System.out.println("4. Modify Supplier Information");
+                System.out.println("5. Delete Supplier Information");
+                System.out.println("6. Exit");
+                System.out.print("Enter Your Choice: ");
+                choice = Integer.parseInt(scan.nextLine());
+            }catch(NumberFormatException ex){
+                System.out.println("Error: Your Input Choice Should Be An Integer!");
+            }
+            switch(choice){
+                case 1:
+                    displaySupplierInfo(supplierManager,supplier);
+                    break;
+                case 2:
+                    displayAllSupplyItems();
+                    break;
+                case 3:
+                    createSupplier(supplierManager,supplier);
+                    break;
+                case 4:
+                    editSupplierInfo();
+                    break;
+                case 5:
+                    deleteSupplierDetails();
+                    break;
+                default:
+                    System.out.println("Invalid Options! Please Try Again...");
+                    break;
+            }
+        }while(choice != 6);
+    }
+
+    private static void displaySupplierInfo(Supplier supplierManager, String[][] supplier) {
+
+
+        //because the first row is the table columns name
+        if (supplier.length == 1) {
+            System.out.println("No supplier information found.");
+
+        }else{
+
+            System.out.println("Supplier Information:");
+            System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+            System.out.printf("| %-2s | %-11s | %-25s | %-78s | %-30s | %-13s | %-10s |\n", "No" ,"Supplier ID", "Supplier Name", "Address", "Email Address", "Supplier Type", "Import Duty");
+            System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+            for (int i = 1; i < supplier.length;i ++) {
+                String[] tempSupplier = supplier[i];
+
+
+                System.out.printf("| %-2d | %-11s | %-25s | %-78s | %-30s | %-13s | %-11s |\n", i ,tempSupplier[0], tempSupplier[1], tempSupplier[2], tempSupplier[3], tempSupplier[4], tempSupplier[5]);
+                System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+            }
+
+            System.out.println("Press Enter to Continue...");
+            scan.nextLine();
+
+        }
+    }
+
+    public static void createSupplier(Supplier supplierManager, String[][] supplier){
+        Supplier tempSupplier;
+        SupplyItem supplyItemManager = new SupplyItem();
+        String id, name, address, email;
+        String type = "";
+        String itemID;
+        double import_duty = 0.00, shipping_fee = 0.00, cost = 0.00;
+        int options = 0, exit = 1;
+        boolean supplierInfoValid;
+        int itemIndex;
+
+        if(Supplier.numSupplier < 100){
+
+
+            do{
+                id = String.format("S%04d", Supplier.numSupplier);
+                System.out.println("ID: " + id);
+                System.out.print("Enter Supplier Name: ");
+                name = scan.nextLine();
+                System.out.print("Enter Supplier Address: ");
+                address = scan.nextLine();
+                System.out.print("Enter Supplier Email: ");
+                email = scan.nextLine();
+
+                do{
+                    try{
+                        System.out.println("Select the type of supplier: ");
+                        System.out.println("1. Local Supplier");
+                        System.out.println("2. Foreign Supplier");
+                        System.out.print("Your Choice: ");
+                        options = Integer.parseInt(scan.nextLine());
+                    }catch(NumberFormatException ex){
+                        System.out.println("Error: Your Input Choice Should Be An Integer!");
+                    }
+
+                    switch(options){
+                        case 1:
+                            type = "Local";
+                            import_duty = 0.00;
+                            break;
+                        case 2:
+                            type = "Foreign";
+                            import_duty = 20.00;
+                            break;
+                        default:
+                            System.out.println("Invalid Options! Please Try Again");
+                            System.out.println();
+                            break;
+                    }
+
+                }while(options < 1 ||  options > 2);
+
+
+                supplierInfoValid = supplierManager.validateSupplierInfo(id, name, address, email, type);
+
+
+
+                if(supplierInfoValid){
+
+
+                    if(type.equals("Local")){
+                        tempSupplier = new LocalSupplier();
+                    }else
+                        tempSupplier = new ForeignSupplier();
+
+                    tempSupplier.setSupplierId(id);
+                    tempSupplier.setSupplierName(name);
+                    tempSupplier.setSupplierAddress(address);
+                    tempSupplier.setSupplierEmail(email);
+                    if(tempSupplier instanceof LocalSupplier){
+                        ((LocalSupplier)tempSupplier).setImportDuty(import_duty);
+                        ((LocalSupplier)tempSupplier).setSupplierType();
+                    }else{
+                        ((ForeignSupplier)tempSupplier).setImportDuty(import_duty);
+                        ((ForeignSupplier)tempSupplier).setSupplierType();
+                    }
+
+
+
+
+
+                    //choose item and add item
+                    supplierManager.addSupplier(tempSupplier);
+
+                    do{
+                        System.out.print("Please Enter The Number For The Product That The Supplier Will Be Providing: ");
+                        itemIndex = Integer.parseInt(scan.nextLine());
+
+                        itemID = String.format("I%04d", itemIndex);
+
+                        System.out.println("Please Enter The Information: ");
+                        System.out.println("Item ID: " + itemID);
+                        try{
+                            System.out.print("Shipping Fee: ");
+                            shipping_fee = Double.parseDouble(scan.nextLine());
+                        }catch(NumberFormatException ex){
+                            System.out.println("Error: Cannot Read The Shipping Fee!");
+                        }
+
+
+                        supplyItemManager.setSupplierId(id);
+                        supplyItemManager.setItemId(itemID);
+                        supplyItemManager.setShippingFee(shipping_fee);
+                        cost = supplyItemManager.getItemCost(itemID);
+                        supplyItemManager.setCost(cost);
+
+                        supplyItemManager.writeData(supplyItemManager);
+
+                        System.out.println();
+                        do{
+                            try{
+                                System.out.println("Do You Want To Add Another Item? ");
+                                System.out.println("1. Yes");
+                                System.out.println("2. No");
+                                System.out.println("Enter Your Choice: ");
+                                options = Integer.parseInt(scan.nextLine());
+                            }catch(NumberFormatException ex){
+                                System.out.println("Error: Your Input Choice Should Be An Integer!");
+                            }
+
+                            if(options != 1 && options !=2)
+                                System.out.println("Invalid Options! Please Try Again");
+                        }while(options != 1 && options != 2);
+
+
+                    }while(options == 1);
+
+                    //addSupplier(id, name, address, email, type, import_duty);
+                    Supplier.numSupplier++;
+                    exit = 1;
+                }
+                else{
+                    do{
+                        try{
+                            System.out.println("Do you want to try again?");
+                            System.out.println("1. Yes");
+                            System.out.println("2. No");
+                            System.out.print("Enter your choice: ");
+                            options = Integer.parseInt(scan.nextLine());
+                        }catch(NumberFormatException ex){
+                            System.out.println("Error: Your Input Choice Should Be An Integer!");
+                        }
+
+                        switch(options){
+                            case 1:
+                                exit = 0;
+                                break;
+                            case 2:
+                                exit = 1;
+                                break;
+                            default:
+                                System.out.println("Invalid Choice. Please Try Again.");
+                                break;
+                        }
+
+                    }while(options < 1 || options > 2);
+                }
+            }while(exit == 0);
+
+        }
+        else{
+            System.out.println("Error: The number of supplier has exceeded the limit!");
+            System.out.println("You cannot add supplier.");
+        }
+
+
+    }
+
+    public static void editSupplierInfo(){
+        int supplierIndex = 0;
+        int options = 0, options2 = 0, exit = 0;
+        String temp, columnName, id;
+        ForeignSupplier foreignSupplier;
+        LocalSupplier localSupplier;
+        Supplier supplierManager = new Supplier();
+
+        if(Supplier.numSupplier  != 0){
+
+            do{
+                System.out.print("Select the supplier to modify: ");
+                supplierIndex = Integer.parseInt(scan.nextLine());
+
+
+                if(supplierIndex > 0 && supplierIndex < Supplier.numSupplier){
+                    do{
+                        id = String.format("S%04d", supplierIndex);
+                        String[][] supplier = supplierManager.getAllSupplierInfo(id);
+                        System.out.println("Supplier Information:");
+                        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+                        System.out.printf("| %-11s | %-25s | %-78s | %-30s | %-13s | %-10s |\n", supplier[1][0], supplier[1][1], supplier[1][2], supplier[1][3], supplier[1][4], supplier[1][5]);
+                        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+                        try{
+                            System.out.println("1. Supplier's Name");
+                            System.out.println("2. Supplier's Address");
+                            System.out.println("3. Supplier's Email");
+                            System.out.print("Enter Your Choice: ");
+                            options2 = Integer.parseInt(scan.nextLine());
+                        }catch(NumberFormatException ex){
+                            System.out.println("Error: Your Input Choice Should Be An Integer!");
+                        }
+                        switch(options2){
+                            case 1:
+                                System.out.print("Enter Name: ");
+                                temp = scan.nextLine();
+
+
+                                if(supplierManager.validateSupplierName(temp)){
+                                    do{
+                                        System.out.println();
+                                        for(int i = 0; i < 62; i++)
+                                            System.out.print("-");
+                                        System.out.println();
+                                        System.out.printf("| %-25s | %-25s |\n", "Old Name", "New Name");
+                                        for(int i = 0; i < 62; i++)
+                                            System.out.print("-");
+                                        System.out.println();
+                                        System.out.printf("| %-25s | %-25s |\n", supplier[1][1], temp);
+                                        for(int i = 0; i < 62; i++)
+                                            System.out.print("-");
+                                        System.out.println();
+                                        try{
+                                            System.out.println("Do you confirm to modify the data?");
+                                            System.out.println("1. Yes");
+                                            System.out.println("2. No");
+                                            System.out.print("Enter your choice: ");
+                                            options = Integer.parseInt(scan.nextLine());
+                                        }catch(NumberFormatException ex){
+                                            System.out.println("Error: Your Input Choice Should Be An Integer!");
+                                        }
+
+                                        switch(options){
+                                            case 1:
+                                                columnName = "supplier_name";
+                                                id = String.format("S%04d", supplierIndex);
+                                                supplierManager.modifySupplier(columnName, id, temp);
+                                                exit = 1;
+                                                break;
+                                            case 2:
+                                                exit = 1;
+                                                break;
+                                            default:
+                                                System.out.println("Invalid Choice! Please Try Again");
+                                                break;
+                                        }
+                                    }while(options != 1 && options !=2 );
+                                }
+                                else
+                                    exit = 1;
+
+
+                                break;
+                            case 2:
+                                System.out.print("Enter Address: ");
+                                temp = scan.nextLine();
+
+                                if(supplierManager.validateSupplierAddress(temp)){
+                                    do{
+                                        System.out.println();
+                                        for(int i = 0; i < 163; i++)
+                                            System.out.print("-");
+                                        System.out.println();
+                                        System.out.printf("| %-78s | %-78s |\n", "Old Address", "New Address");
+                                        for(int i = 0; i < 163; i++)
+                                            System.out.print("-");
+                                        System.out.println();
+                                        System.out.printf("| %-78s | %-78s |\n", supplier[1][2], temp);
+                                        for(int i = 0; i < 163; i++)
+                                            System.out.print("-");
+                                        System.out.println();
+                                        try{
+                                            System.out.println("Do you confirm to modify the data?");
+                                            System.out.println("1. Yes");
+                                            System.out.println("2. No");
+                                            System.out.print("Enter your choice: ");
+                                            options = Integer.parseInt(scan.nextLine());
+                                        }catch(NumberFormatException ex){
+                                            System.out.println("Error: Your Input Choice Should Be An Integer!");
+                                        }
+
+                                        switch(options){
+                                            case 1:
+                                                columnName = "supplier_address";
+                                                id = String.format("S%04d", supplierIndex);
+                                                supplierManager.modifySupplier(columnName, id, temp);
+                                                exit = 1;
+                                                break;
+                                            case 2:
+                                                exit = 1;
+                                                break;
+                                            default:
+                                                System.out.println("Invalid Choice! Please Try Again");
+                                                break;
+                                        }
+                                    }while(options != 1 && options !=2 );
+                                }
+                                else
+                                    exit = 1;
+
+
+                                break;
+                            case 3:
+                                System.out.print("Enter Email Address: ");
+                                temp = scan.nextLine();
+
+
+                                if(supplierManager.validateSupplierEmail(temp)){
+                                    do{
+                                        System.out.println();
+                                        for(int i = 0; i < 62; i++)
+                                            System.out.print("-");
+                                        System.out.println();
+                                        System.out.printf("| %-30s | %-30s |\n", "Email Address", "Email Address");
+                                        for(int i = 0; i < 62; i++)
+                                            System.out.print("-");
+                                        System.out.println();
+                                        System.out.printf("| %-30s | %-30s |\n", supplier[1][3], temp);
+                                        for(int i = 0; i < 62; i++)
+                                            System.out.print("-");
+                                        System.out.println();
+                                        try{
+                                            System.out.println("Do you confirm to modify the data?");
+                                            System.out.println("1. Yes");
+                                            System.out.println("2. No");
+                                            System.out.print("Enter your choice: ");
+                                            options = Integer.parseInt(scan.nextLine());
+                                        }catch(NumberFormatException ex){
+                                            System.out.println("Error: Your Input Choice Should Be An Integer!");
+                                        }
+
+                                        switch(options){
+                                            case 1:
+                                                columnName = "email_address";
+                                                id = String.format("S%04d", supplierIndex);
+                                                supplierManager.modifySupplier(columnName, id, temp);
+                                                exit = 1;
+                                                break;
+                                            case 2:
+                                                exit = 1;
+                                                break;
+                                            default:
+                                                System.out.println("Invalid Choice! Please Try Again");
+                                                break;
+                                        }
+                                    }while(options != 1 && options !=2 );
+                                }
+                                else
+                                    exit = 1;
+
+                                break;
+                        }
+                    }while(options2 < 1 || options2 > 3);
+
+                }
+                else{
+                    do{
+                        System.out.println("Invalid choice!");
+                        try {
+                            System.out.println("Do you want to try again?");
+                            System.out.println("1. Yes");
+                            System.out.println("2. No");
+                            System.out.print("Enter Your Choice: ");
+                            options = Integer.parseInt(scan.nextLine());
+                        }catch(NumberFormatException ex){
+                            System.out.println("Error: Your Input Choice Should Be An Integer!");
+                        }
+
+                        switch(options){
+                            case 1:
+                                exit = 0;
+                                break;
+                            case 2:
+                                exit = 1;
+                                break;
+                            default:
+                                System.out.println("Invalid Choice. Please Try Again.");
+                                break;
+                        }
+                    }while(options < 1 || options > 2);
+                }
+            }while(exit == 0);
+        }
+
+
+    }
+
+    public static void deleteSupplierDetails(){
+        int supplierIndex;
+        int options = 0, exit = 0;
+        String id;
+        Supplier supplierManager = new Supplier();
+
+
+        if(Supplier.numSupplier != 0){
+            do{
+                System.out.print("Select the supplier to delete: ");
+                supplierIndex = Integer.parseInt(scan.nextLine());
+                if(supplierIndex > 0 && supplierIndex < Supplier.numSupplier){
+                    do{
+                        id = String.format("S%04d", supplierIndex);
+                        String[][] supplier = supplierManager.getAllSupplierInfo(id);
+                        System.out.println("Supplier Information: ");
+                        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+                        System.out.printf("| %-11s | %-25s | %-78s | %-30s | %-13s | %-10s |\n", supplier[1][0], supplier[1][1], supplier[1][2], supplier[1][3], supplier[1][4], supplier[1][5]);
+                        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+                        try{
+                            System.out.printf("Do you confirm to delete Supplier'ID : %s ?\n", supplier[1][0]);
+                            System.out.println("1. Yes");
+                            System.out.println("2. No");
+                            System.out.print("Enter Your Choice: ");
+                            options = Integer.parseInt(scan.nextLine());
+                        }catch(NumberFormatException ex){
+                            System.out.println("Error: Your Input Choice Sholud Be An Integer:!");
+                        }
+                        switch(options){
+                            case 1:
+                                id = String.format("S%04d", supplierIndex);
+                                supplierManager.deleteSupplier(id);
+                                exit = 1;
+                                break;
+                            case 2:
+                                exit = 1;
+                                break;
+                            default:
+                                System.out.println("Invalid Choice! Please Try Again");
+                                break;
+
+                        }
+
+                    }while(options != 1 && options !=2 );
+                    do{
+                        try{
+                            System.out.println("Do You Want to Continue Delete Another Supplier?");
+                            System.out.println("1. Yes");
+                            System.out.println("2. No");
+                            System.out.print("Enter Your Choice: ");
+                            options = Integer.parseInt(scan.nextLine());
+                        }catch(NumberFormatException ex){
+                            System.out.println("Error: Your Input Choice Sholud Be An Integer:!");
+                        }
+
+                        switch(options){
+                            case 1:
+                                exit = 0;
+                                break;
+                            case 2:
+                                exit = 1;
+                                break;
+                            default:
+                                System.out.println("Invalid Choice! Please Try Again");
+                                break;
+                        }
+                    }while(options != 1 && options !=2 );
+                }else
+                    exit = 1;
+            }while(exit == 0);
+        }
+        else{
+            do{
+                System.out.println("Invalid choice!");
+                try {
+                    System.out.println("Do you want to try again?");
+                    System.out.println("1. Yes");
+                    System.out.println("2. No");
+                    System.out.print("Enter Your Choice: ");
+                    options = Integer.parseInt(scan.nextLine());
+                }catch(NumberFormatException ex){
+                    System.out.println("Error: Your Input Choice Should Be An Integer!");
+                }
+
+                switch(options){
+                    case 1:
+                        exit = 0;
+                        break;
+                    case 2:
+                        exit = 1;
+                        break;
+                    default:
+                        System.out.println("Invalid Choice. Please Try Again.");
+                        break;
+                }
+            }while(options < 1 || options > 2);
+
+        }
+
+    }
+
+    public static void displayAllSupplyItems(){
+        SupplyItem supplyItemManager = new SupplyItem();
+        ArrayList<ArrayList<Object>> supplyItems = supplyItemManager.getAllSupplyItem();
+
+        if(supplyItems.size() == 1){
+            System.out.println("No Supply Item Data Found.");
+        }else{
+            System.out.println();
+            System.out.println("Supply Item: ");
+            System.out.println("-------------------------------------------------------------------------------------");
+            System.out.printf("| %-11s | %-10s | %-20s | %-16s | %-12s |\n", "Supplier ID", "Item ID", "Item Name" ,"Shipping Fee(RM)", "Cost(RM)");
+            System.out.println("-------------------------------------------------------------------------------------");
+            for (int i = 1; i < supplyItems.size(); i++) {
+                ArrayList<Object> row = supplyItems.get(i);
+                System.out.printf("| %-11s | %-10s | %-20s | %-16s | %-12s |\n", row.get(0).toString(),  row.get(1).toString(), row.get(2).toString(),row.get(3).toString(), row.get(4).toString());
+            }
+
+            System.out.println("-------------------------------------------------------------------------------------");
+            System.out.println("Press Enter to Continue...");
+            scan.nextLine();
+        }
+    }
 }
