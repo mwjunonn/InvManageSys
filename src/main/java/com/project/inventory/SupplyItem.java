@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.project.inventory;
 import java.util.ArrayList;
 
@@ -13,6 +9,7 @@ public class SupplyItem {
     private static Database db = new Database("supplier_item");
     private String supplierId, itemId;
     private double shippingFee, cost;
+    public static int supplyItemNum = 0;
     
     
     //constructor
@@ -66,8 +63,61 @@ public class SupplyItem {
 
         
         db.readTable(columns, new Object[][]{}, additional);
-        return db.getObjResult();
         
+        ArrayList<ArrayList<Object>> result = db.getObjResult();
+        
+        
+
+        supplyItemNum = result.size(); 
+        
+        
+        return result;
+        
+    }
+    
+    public String[][] getAllSupplyItem(String supplierId, String itemId){
+        String[] columns = {"supplier_id", "supplier_item.item_id", "shipping_fee", "supplier_item.cost"};
+     
+        Object[][] condition ={{"supplier_id", supplierId}, {"supplier_item.item_id", itemId}};
+        
+        db.readTable(columns, condition);
+        
+        ArrayList<ArrayList<Object>> result = db.getObjResult();
+        
+        String[][] supplyItemInfo = new String[result.size()][columns.length];
+        
+        for(int i = 0; i < result.size(); i++){
+            for(int j = 0; j < result.get(i).size();j++){
+                supplyItemInfo[i][j] = result.get(i).get(j).toString();
+            }
+        }
+        return supplyItemInfo;
+        
+    }
+    
+    public boolean isSupplierExists(String supplierId) {
+        Database db1 = new Database("supplier_item");
+
+        String[] columns = {"supplier_id"};
+        Object[][] condition = {{"supplier_id", supplierId}};
+
+        if (db1.readTable(columns, condition, "")) {
+            ArrayList<ArrayList<Object>> result = db1.getObjResult();
+            return result != null && !result.isEmpty();
+        }
+        return false;
+    }
+    
+    public boolean isItemExists(String itemId) {
+        Database db1 = new Database("inventory");
+        String[] columns = {"item_id"};
+        Object[][] condition = {{"item_id", itemId}};
+
+        if (db.readTable(columns, condition, "")) {
+            ArrayList<ArrayList<Object>> result = db.getObjResult();
+            return result != null && !result.isEmpty();
+        }
+        return false;
     }
     
     public double getItemCost(String itemID){
@@ -80,6 +130,8 @@ public class SupplyItem {
         db1.readTable(columns, condition);
         
         ArrayList<String> costResult = db1.getResult();
+        
+        
         
          if (costResult != null && !costResult.isEmpty()) {
             try {
@@ -99,41 +151,32 @@ public class SupplyItem {
     }
     
     public void writeData(SupplyItem supplyItem){
-     
-        if(supplyItem != null){
-            
-             String supplierId = supplyItem.getSupplierId();
-             String itemId = supplyItem.getItemId();
-             double shippingFee = supplyItem.getShippingFee();
-             double cost = supplyItem.getCost();
-             
-             if (supplierId == null || itemId == null) {
-                System.out.println("Error: Supplier ID or Item ID is null.");
-                return;
-            }
-            
+         
+            String supplierId = supplyItem.getSupplierId();
+            String itemId = supplyItem.getItemId();
+            double shippingFee = supplyItem.getShippingFee();
+            double cost = supplyItem.getCost();
+        
             String shippingFeeStr = String.valueOf(supplyItem.getShippingFee());
             String costStr = String.valueOf(supplyItem.getCost());
             String[] columns = {"supplier_id", "item_id", "shipping_fee", "cost"};
             String[] value = {supplyItem.getSupplierId(), supplyItem.getItemId(), shippingFeeStr, costStr};
 
-
-            try {
-                db.insertTable(columns, value);    
-            } catch (Exception e) {
-                System.out.println("Error inserting data: " + e.getMessage());
-                e.printStackTrace();
-            }
-        
-        }else{
-                System.out.println("Error: SupplyItem object is null.");
-
-        }
-       
+           db.insertTable(columns, value);    
+     
     }
     
+    public void updateData(String columnName, String supplierId, String itemId, String temp){
+        Object[][] values = {{columnName, temp}};
+        
+        Object[][] condition  = {{"supplier_id", supplierId},{"item_id", itemId}};
+        
+        if(db.updateTable(values, condition)){
+            System.out.println("New Data Updated");
+        }
+        else 
+            System.out.println("Failed to Update New Data!");
+    }
 
 }
-
-
 

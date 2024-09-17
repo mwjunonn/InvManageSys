@@ -87,6 +87,7 @@ public abstract class Main {
                                 case 2:     //Current Stock Report
                                     break;
                                 case 3:     //Display all supplier (If don't need cut this out)
+                                    supplierMenu();
                                     break;
                                 case 4:     //All staff details
                                     manager.displayAllUser();
@@ -600,9 +601,12 @@ public abstract class Main {
     private static void supplierMenu(){
         int choice = 0;
         Supplier supplierManager = new Supplier();
-        String[][] supplier = supplierManager.getAllSupplierInfo();
+        SupplyItem supplyItemManager = new SupplyItem();
+      
 
         do{
+        String[][] supplier = supplierManager.getAllSupplierInfo();
+        ArrayList<ArrayList<Object>> supplyItem = supplyItemManager.getAllSupplyItem();
             try{
                 System.out.println("-----------------");
                 System.out.println("| Supplier Menu |");
@@ -610,9 +614,12 @@ public abstract class Main {
                 System.out.println("1. View All Supplier Details");
                 System.out.println("2. View All Supply Item Details");
                 System.out.println("3. Add New Supplier");
-                System.out.println("4. Modify Supplier Information");
-                System.out.println("5. Delete Supplier Information");
-                System.out.println("6. Exit");
+                System.out.println("4. Add Supply Item Information");
+                System.out.println("5. Modify Supplier Information");
+                System.out.println("6. Modify Supply Item Information");
+                System.out.println("7. Delete Supplier Information");
+                System.out.println("8. Delete Supply Item Information");
+                System.out.println("9. Exit");
                 System.out.print("Enter Your Choice: ");
                 choice = Integer.parseInt(scan.nextLine());
             }catch(NumberFormatException ex){
@@ -621,24 +628,35 @@ public abstract class Main {
             switch(choice){
                 case 1:
                     displaySupplierInfo(supplierManager,supplier);
+                    System.out.println("Press Enter to Continue...");
+                    scan.nextLine();
                     break;
                 case 2:
-                    displayAllSupplyItems();
+                    displayAllSupplyItems(supplyItemManager, supplyItem);
+                    System.out.println("Press Enter to Continue...");
+                    scan.nextLine();
                     break;
                 case 3:
                     createSupplier(supplierManager,supplier);
                     break;
                 case 4:
-                    editSupplierInfo();
+                    createSupplyItem();
                     break;
                 case 5:
-                    deleteSupplierDetails();
+                    editSupplierInfo(supplierManager,supplier);
+                    break;
+                case 6:
+                    displayAllSupplyItems(supplyItemManager, supplyItem);
+                    editSupplyItem();
+                    break;
+                case 7:
+                    deleteSupplierDetails(supplierManager,supplier);
                     break;
                 default:
                     System.out.println("Invalid Options! Please Try Again...");
                     break;
             }
-        }while(choice != 6);
+        }while(choice != 9);
     }
 
     private static void displaySupplierInfo(Supplier supplierManager, String[][] supplier) {
@@ -662,8 +680,7 @@ public abstract class Main {
                 System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
             }
 
-            System.out.println("Press Enter to Continue...");
-            scan.nextLine();
+            
 
         }
     }
@@ -761,17 +778,23 @@ public abstract class Main {
                         System.out.println("Please Enter The Information: ");
                         System.out.println("Item ID: " + itemID);
                         try{
-                            System.out.print("Shipping Fee: ");
+                            System.out.print("Shipping Fee: RM");
                             shipping_fee = Double.parseDouble(scan.nextLine());
                         }catch(NumberFormatException ex){
                             System.out.println("Error: Cannot Read The Shipping Fee!");
+                        }
+                        
+                        try{
+                            System.out.println("Cost: RM");
+                            cost = Double.parseDouble(scan.nextLine());
+                        }catch(NumberFormatException ex){
+                            System.out.println("Error: Cannot Read The Cost !");
                         }
 
 
                         supplyItemManager.setSupplierId(id);
                         supplyItemManager.setItemId(itemID);
                         supplyItemManager.setShippingFee(shipping_fee);
-                        cost = supplyItemManager.getItemCost(itemID);
                         supplyItemManager.setCost(cost);
 
                         supplyItemManager.writeData(supplyItemManager);
@@ -836,13 +859,12 @@ public abstract class Main {
 
     }
 
-    public static void editSupplierInfo(){
+    public static void editSupplierInfo(Supplier supplierManager, String[][] supplier){
         int supplierIndex = 0;
         int options = 0, options2 = 0, exit = 0;
         String temp, columnName, id;
         ForeignSupplier foreignSupplier;
         LocalSupplier localSupplier;
-        Supplier supplierManager = new Supplier();
 
         if(Supplier.numSupplier  != 0){
 
@@ -854,7 +876,7 @@ public abstract class Main {
                 if(supplierIndex > 0 && supplierIndex < Supplier.numSupplier){
                     do{
                         id = String.format("S%04d", supplierIndex);
-                        String[][] supplier = supplierManager.getAllSupplierInfo(id);
+                        supplier = supplierManager.getAllSupplierInfo(id);
                         System.out.println("Supplier Information:");
                         System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                         System.out.printf("| %-11s | %-25s | %-78s | %-30s | %-13s | %-10s |\n", supplier[1][0], supplier[1][1], supplier[1][2], supplier[1][3], supplier[1][4], supplier[1][5]);
@@ -915,8 +937,11 @@ public abstract class Main {
                                         }
                                     }while(options != 1 && options !=2 );
                                 }
-                                else
+                                else{
+                                    System.out.println("You will now be exited from this function.");
+                                    System.out.println("To try again, please reselect the function from the menu.");
                                     exit = 1;
+                                }
 
 
                                 break;
@@ -964,9 +989,11 @@ public abstract class Main {
                                         }
                                     }while(options != 1 && options !=2 );
                                 }
-                                else
+                                else{
+                                    System.out.println("You will now be exited from this function.");
+                                    System.out.println("To try again, please reselect the function from the menu.");
                                     exit = 1;
-
+                                }
 
                                 break;
                             case 3:
@@ -1014,8 +1041,12 @@ public abstract class Main {
                                         }
                                     }while(options != 1 && options !=2 );
                                 }
-                                else
-                                    exit = 1;
+                                else{
+                                    System.out.println("You will now be exited from this function.");
+                                    System.out.println("To try again, please reselect the function from the menu.");
+                                     exit = 1;
+                                }
+                                   
 
                                 break;
                         }
@@ -1054,11 +1085,11 @@ public abstract class Main {
 
     }
 
-    public static void deleteSupplierDetails(){
+    public static void deleteSupplierDetails(Supplier supplierManager, String[][] supplier){
         int supplierIndex;
         int options = 0, exit = 0;
         String id;
-        Supplier supplierManager = new Supplier();
+  
 
 
         if(Supplier.numSupplier != 0){
@@ -1068,7 +1099,7 @@ public abstract class Main {
                 if(supplierIndex > 0 && supplierIndex < Supplier.numSupplier){
                     do{
                         id = String.format("S%04d", supplierIndex);
-                        String[][] supplier = supplierManager.getAllSupplierInfo(id);
+                        supplier = supplierManager.getAllSupplierInfo(id);
                         System.out.println("Supplier Information: ");
                         System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                         System.out.printf("| %-11s | %-25s | %-78s | %-30s | %-13s | %-10s |\n", supplier[1][0], supplier[1][1], supplier[1][2], supplier[1][3], supplier[1][4], supplier[1][5]);
@@ -1155,26 +1186,261 @@ public abstract class Main {
 
     }
 
-    public static void displayAllSupplyItems(){
-        SupplyItem supplyItemManager = new SupplyItem();
-        ArrayList<ArrayList<Object>> supplyItems = supplyItemManager.getAllSupplyItem();
-
+    public static void displayAllSupplyItems(SupplyItem supplyItemManager, ArrayList<ArrayList<Object>> supplyItems){
+       
         if(supplyItems.size() == 1){
             System.out.println("No Supply Item Data Found.");
         }else{
             System.out.println();
             System.out.println("Supply Item: ");
-            System.out.println("-------------------------------------------------------------------------------------");
-            System.out.printf("| %-11s | %-10s | %-20s | %-16s | %-12s |\n", "Supplier ID", "Item ID", "Item Name" ,"Shipping Fee(RM)", "Cost(RM)");
-            System.out.println("-------------------------------------------------------------------------------------");
+            System.out.println("------------------------------------------------------------------------------------------");
+            System.out.printf("| %-2s | %-11s | %-10s | %-20s | %-16s | %-12s |\n", "No","Supplier ID", "Item ID", "Item Name" ,"Shipping Fee(RM)", "Cost(RM)");
+            System.out.println("------------------------------------------------------------------------------------------");
             for (int i = 1; i < supplyItems.size(); i++) {
                 ArrayList<Object> row = supplyItems.get(i);
-                System.out.printf("| %-11s | %-10s | %-20s | %-16s | %-12s |\n", row.get(0).toString(),  row.get(1).toString(), row.get(2).toString(),row.get(3).toString(), row.get(4).toString());
+                System.out.printf("| %-2d | %-11s | %-10s | %-20s | %-16s | %-12s |\n", i, row.get(0).toString(),  row.get(1).toString(), row.get(2).toString(),row.get(3).toString(), row.get(4).toString());
             }
 
-            System.out.println("-------------------------------------------------------------------------------------");
-            System.out.println("Press Enter to Continue...");
-            scan.nextLine();
+            System.out.println("------------------------------------------------------------------------------------------");
+            
         }
     }
+    
+    public static void editSupplyItem(){
+        String supplierId, itemId, shippingFee, cost;
+        SupplyItem supplyItemManager = new SupplyItem();
+        String[][] supplyItemInfo;
+        int options = 0;
+        double newValue;
+        int supplierIndex = 0, itemIDIndex = 0;
+        
+        if(SupplyItem.supplyItemNum != 0){
+            
+                try{
+                    System.out.print("Please Enter The Supplier's ID (EG: S0001 - > 1): ");
+                    supplierIndex = Integer.parseInt(scan.nextLine());
+                }catch(NumberFormatException ex){
+                    System.out.println("You Can Only Enter Integer!");
+                }
+               
+                
+                if(supplierIndex  > 0 && supplierIndex < Supplier.numSupplier){
+                    
+                    try{
+                     System.out.print("Please Enter The Item's ID (EG: I0001 - > 1): ");
+                     itemIDIndex= Integer.parseInt(scan.nextLine());
+                    }catch(NumberFormatException ex){
+                       System.out.println("You Can Only Enter Integer!");
+
+                    }
+                     
+                    if(itemIDIndex > 0 && itemIDIndex < SupplyItem.supplyItemNum){
+                         supplierId = String.format("S%04d", supplierIndex);
+                         itemId =  String.format("I%04d", itemIDIndex);
+                         
+                        if(supplyItemManager.isSupplierExists(supplierId) && supplyItemManager.isItemExists(itemId)){
+                            supplyItemInfo = supplyItemManager.getAllSupplyItem(supplierId, itemId);
+                            if(supplyItemInfo != null && supplyItemInfo.length > 1){
+                                do{
+                                    System.out.println("--------------------------------------------------------------");
+                                    System.out.printf("| %-11s | %-10s | %-16s | %-12s |\n", "Supplier ID", "Item ID", "Shipping Fee(RM)", "Cost(RM)");
+                                    System.out.println("--------------------------------------------------------------");
+                                    System.out.printf("| %-11s | %-10s | %-16s | %-12s |\n",  supplyItemInfo[1][0],  supplyItemInfo[1][1], supplyItemInfo[1][2], supplyItemInfo[1][3]);
+                                    System.out.println("--------------------------------------------------------------");
+
+
+                                 
+                                    try{
+                                       System.out.println("Select The Data That You Want To Modify");
+                                       System.out.println("1. Shipping Fee");
+                                       System.out.println("2. Cost");
+                                       System.out.print("Enter Your Choice: ");
+                                       options = Integer.parseInt(scan.nextLine());
+                                    }catch(NumberFormatException ex){
+                                       System.out.println("Error: Your Input Choice Should Be An Integer!");
+                                    }
+                                    switch(options){
+                                        case 1:
+                                            System.out.print("Enter New Shipping Fee: RM");
+                                            newValue = Double.parseDouble(scan.nextLine());
+                                            if(newValue > 0 && newValue < 1000){
+                                                shippingFee = String.valueOf(newValue);
+                                                do{
+                                                    System.out.println("---------------------------------------");
+                                                    System.out.printf("| %-16s | %-16s |\n", "Old Data", "New Data");
+                                                    System.out.println("---------------------------------------");
+                                                    System.out.printf("| %-16s | %-16.2f |\n", supplyItemInfo[1][2], newValue);
+                                                    System.out.println("---------------------------------------");
+                                                    try{
+                                                        System.out.println("Do You Confirm The Modification?");
+                                                        System.out.println("1. Yes");
+                                                        System.out.println("2. No");
+                                                        System.out.print("Enter Your Choice: ");
+                                                        options = Integer.parseInt(scan.nextLine());
+                                                    }catch(NumberFormatException ex){
+                                                        System.out.println("Error: Your Input Choice Should Be An Integer!");
+                                                    }
+                                                    switch(options){
+                                                        case 1: 
+                                                            supplyItemManager.updateData("shipping_fee", supplierId, itemId, shippingFee);
+                                                            break;
+                                                        case 2:
+                                                            System.out.println("Modification has been canceled. No changes were made.");
+                                                            System.out.println("You will now be exited from this function.");
+                                                            System.out.println("To try again, please reselect the function from the menu.");
+                                                            break;
+                                                        default:
+                                                            System.out.println("Invalid options! Please Try Again...");
+                                                            break;
+                                                    }
+                                                }while(options != 1 && options != 2);
+                                            }else{
+                                                System.out.println("Please ensure the shipping fee is within the valid range of RM0 to RM999.");
+                                                System.out.println("You will now be exited from this function.");
+                                                System.out.println("To try again, please reselect the function from the menu.");
+                                            }
+
+                                            break;
+                                        case 2:
+                                            System.out.print("Enter New Cost: RM");
+                                            newValue = Double.parseDouble(scan.nextLine());
+                                            if(newValue > 0 && newValue < 1000){
+                                                cost = String.valueOf(newValue);
+
+                                                do{
+                                                    System.out.println("-------------------------------");
+                                                    System.out.printf("| %-12s | %-12s |\n", "Old Data", "New Data");
+                                                    System.out.println("-------------------------------");
+                                                    System.out.printf("| %-12s | %-12.2f |\n", supplyItemInfo[1][3], newValue);
+                                                    System.out.println("-------------------------------");
+                                                    try{
+                                                        System.out.println("Do You Confirm The Modification?");
+                                                        System.out.println("1. Yes");
+                                                        System.out.println("2. No");
+                                                        System.out.print("Enter Your Choice: ");
+                                                        options = Integer.parseInt(scan.nextLine());
+                                                    }catch(NumberFormatException ex){
+                                                        System.out.println("Error: Your Input Choice Should Be An Integer!");
+                                                    }
+                                                    switch(options){
+                                                        case 1: 
+                                                            supplyItemManager.updateData("cost", supplierId, itemId, cost);
+                                                            break;
+                                                        case 2:
+                                                            System.out.println("Modification has been canceled. No changes were made.");
+                                                            System.out.println("You will now be exited from this function.");
+                                                            System.out.println("To try again, please reselect the function from the menu.");
+                                                            break;
+                                                        default:
+                                                            System.out.println("Invalid options! Please Try Again...");
+                                                            break;
+                                                    }
+                                                }while(options != 1 && options != 2);
+                                            }else{
+                                                System.out.println("Please ensure the shipping fee is within the valid range of RM0 to RM999.");
+                                                System.out.println("You will now be exited from this function.");
+                                                System.out.println("To try again, please reselect the function from the menu.");
+                                            }
+                                            break;
+                                        default:
+                                            System.out.println("Invalid Options! Please Try Again...");
+                                            break;
+                                    }
+
+                                 }while(options != 1 && options !=2);
+                            }else{
+                                 System.out.println("No Matching records found for Supplier's ID or Item's ID!");
+                                 System.out.println("You will now be exited from this function.");
+                                 System.out.println("To try again, please reselect the function from the menu.");
+                            }
+                        }else{
+                            System.out.println("No Matching records found for Supplier's ID or Item's ID!");
+                            System.out.println("You will now be exited from this function.");
+                            System.out.println("To try again, please reselect the function from the menu.");
+                        }
+                    }
+                    else{
+                        System.out.println("Invalid Item's ID!");
+                        System.out.println("You will now be exited from this function.");
+                        System.out.println("To try again, please reselect the function from the menu.");
+                    }
+                     
+                }else{
+                    System.out.println("Invalid Supplier's ID");
+                    System.out.println("You will now be exited from this function.");
+                    System.out.println("To try again, please reselect the function from the menu.");
+                }
+ 
+            }else{
+                System.out.println("No Supply Item Record!");
+            }
+        }
+    
+    public static void createSupplyItem(){
+        int supplierIndex = 0, itemIDIndex = 0;
+        double shippingFee, cost;
+        String supplierId, itemId;
+        SupplyItem supplyItemManager = new SupplyItem();
+        ArrayList<ArrayList<Object>> supplyItem = supplyItemManager.getAllSupplyItem();
+
+     
+        try{
+            System.out.print("Please Enter The Supplier's ID (EG: S0001 - > 1): ");
+            supplierIndex = Integer.parseInt(scan.nextLine());
+        }catch(NumberFormatException ex){
+            System.out.println("You Can Only Enter Integer!");
+        }
+        if(supplierIndex > 0 && supplierIndex < Supplier.numSupplier){
+            try{
+                System.out.print("Please Enter The Item's ID (EG: I0001 - > 1): ");
+                itemIDIndex= Integer.parseInt(scan.nextLine());
+            }catch(NumberFormatException ex){
+                System.out.println("You Can Only Enter Integer!");
+
+            }
+            if(itemIDIndex > 0 && itemIDIndex < SupplyItem.supplyItemNum){
+                supplierId = String.format("S%04d", supplierIndex);
+                itemId =  String.format("I%04d", itemIDIndex);
+                
+                if(supplyItemManager.isSupplierExists(supplierId) && supplyItemManager.isItemExists(itemId)){
+                    
+                        System.out.println("Information");
+                        System.out.println("-----------");
+                        System.out.print("Shipping Fee: RM");
+                        shippingFee = Double.parseDouble(scan.nextLine());
+                        System.out.print("Cost: RM");
+                        cost = Double.parseDouble(scan.nextLine());
+                        
+                        if(shippingFee > 0 && shippingFee <1000 && cost > 0 && cost <1000){
+                            supplyItemManager.setSupplierId(supplierId);
+                            supplyItemManager.setItemId(itemId);
+                            supplyItemManager.setShippingFee(shippingFee);
+                            supplyItemManager.setCost(cost);
+                            supplyItemManager.writeData(supplyItemManager);
+                            System.out.println("Updated Successfully");
+                        }
+                        else{
+                            System.out.println("Please ensure the shipping fee and cost are within the valid range of RM0 to RM999.");
+                            System.out.println("You will now be exited from this function.");
+                            System.out.println("To try again, please reselect the function from the menu.");
+                        }
+           
+                }else{
+                     System.out.println("No Matching records found for Supplier's ID or Item's ID!");
+                     System.out.println("You will now be exited from this function.");
+                     System.out.println("To try again, please reselect the function from the menu.");
+                }
+
+            }else{
+                 System.out.println("Invalid Item's ID!");
+                 System.out.println("You will now be exited from this function.");
+                 System.out.println("To try again, please reselect the function from the menu.");
+            }
+        }else{
+            System.out.println("Invalid Supplier's ID");
+            System.out.println("You will now be exited from this function.");
+            System.out.println("To try again, please reselect the function from the menu.");
+        }
+        
+    } 
 }
