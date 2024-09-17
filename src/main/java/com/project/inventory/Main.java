@@ -652,6 +652,10 @@ public abstract class Main {
                 case 7:
                     deleteSupplierDetails(supplierManager,supplier);
                     break;
+                case 8:
+                    displayAllSupplyItems(supplyItemManager, supplyItem);
+                    deleteSupplyItem();
+                    break;
                 default:
                     System.out.println("Invalid Options! Please Try Again...");
                     break;
@@ -685,7 +689,7 @@ public abstract class Main {
         }
     }
 
-    public static void createSupplier(Supplier supplierManager, String[][] supplier){
+    private static void createSupplier(Supplier supplierManager, String[][] supplier){
         Supplier tempSupplier;
         SupplyItem supplyItemManager = new SupplyItem();
         String id, name, address, email;
@@ -859,7 +863,7 @@ public abstract class Main {
 
     }
 
-    public static void editSupplierInfo(Supplier supplierManager, String[][] supplier){
+    private static void editSupplierInfo(Supplier supplierManager, String[][] supplier){
         int supplierIndex = 0;
         int options = 0, options2 = 0, exit = 0;
         String temp, columnName, id;
@@ -1085,7 +1089,7 @@ public abstract class Main {
 
     }
 
-    public static void deleteSupplierDetails(Supplier supplierManager, String[][] supplier){
+    private static void deleteSupplierDetails(Supplier supplierManager, String[][] supplier){
         int supplierIndex;
         int options = 0, exit = 0;
         String id;
@@ -1117,6 +1121,7 @@ public abstract class Main {
                             case 1:
                                 id = String.format("S%04d", supplierIndex);
                                 supplierManager.deleteSupplier(id);
+                                Supplier.numSupplier--;
                                 exit = 1;
                                 break;
                             case 2:
@@ -1186,7 +1191,7 @@ public abstract class Main {
 
     }
 
-    public static void displayAllSupplyItems(SupplyItem supplyItemManager, ArrayList<ArrayList<Object>> supplyItems){
+    private static void displayAllSupplyItems(SupplyItem supplyItemManager, ArrayList<ArrayList<Object>> supplyItems){
        
         if(supplyItems.size() == 1){
             System.out.println("No Supply Item Data Found.");
@@ -1206,7 +1211,7 @@ public abstract class Main {
         }
     }
     
-    public static void editSupplyItem(){
+    private static void editSupplyItem(){
         String supplierId, itemId, shippingFee, cost;
         SupplyItem supplyItemManager = new SupplyItem();
         String[][] supplyItemInfo;
@@ -1376,7 +1381,7 @@ public abstract class Main {
             }
         }
     
-    public static void createSupplyItem(){
+    private static void createSupplyItem(){
         int supplierIndex = 0, itemIDIndex = 0;
         double shippingFee, cost;
         String supplierId, itemId;
@@ -1443,4 +1448,53 @@ public abstract class Main {
         }
         
     } 
+    
+    private static void deleteSupplyItem(){
+        int supplierIndex = 0, itemIDIndex = 0;
+        String supplierId, itemId;
+        SupplyItem supplyItemManager = new SupplyItem();
+        ArrayList<ArrayList<Object>> supplyItem = supplyItemManager.getAllSupplyItem();
+        
+        if(SupplyItem.supplyItemNum > 0){
+            try{
+                System.out.print("Please Enter The Supplier's ID (EG: S0001 - > 1): ");
+                supplierIndex = Integer.parseInt(scan.nextLine());
+            }catch(NumberFormatException ex){
+                System.out.println("You Can Only Enter Integer!");
+            }
+            if(supplierIndex > 0 && supplierIndex < Supplier.numSupplier){
+                try{
+                    System.out.print("Please Enter The Item's ID (EG: I0001 - > 1): ");
+                    itemIDIndex= Integer.parseInt(scan.nextLine());
+                }catch(NumberFormatException ex){
+                    System.out.println("You Can Only Enter Integer!");
+
+                }
+                if(itemIDIndex > 0 && itemIDIndex < SupplyItem.supplyItemNum){
+                    supplierId = String.format("S%04d", supplierIndex);
+                    itemId =  String.format("I%04d", itemIDIndex);
+
+                    if(supplyItemManager.isSupplierExists(supplierId) && supplyItemManager.isItemExists(itemId)){
+                        supplyItemManager.deleteSupplyItem(supplierId, itemId);
+                        SupplyItem.supplyItemNum--;
+                    }else{
+                        System.out.println("No Matching records found for Supplier's ID or Item's ID!");
+                        System.out.println("You will now be exited from this function.");
+                        System.out.println("To try again, please reselect the function from the menu.");
+                    }
+                }else{
+                    System.out.println("Invalid Item's ID!");
+                    System.out.println("You will now be exited from this function.");
+                    System.out.println("To try again, please reselect the function from the menu.");
+                }
+            }else{
+                System.out.println("Invalid Supplier's ID");
+                System.out.println("You will now be exited from this function.");
+                System.out.println("To try again, please reselect the function from the menu.");
+            }
+        }else{
+            System.out.println("No Supply Item Record...");
+        }
+        
+    }   
 }

@@ -103,19 +103,21 @@ public class SupplyItem {
 
         if (db1.readTable(columns, condition, "")) {
             ArrayList<ArrayList<Object>> result = db1.getObjResult();
-            return result != null && !result.isEmpty();
+            // Check if there is more than just the column name row
+            return result != null && result.size() > 1;
         }
         return false;
     }
-    
+
     public boolean isItemExists(String itemId) {
         Database db1 = new Database("inventory");
         String[] columns = {"item_id"};
         Object[][] condition = {{"item_id", itemId}};
 
-        if (db.readTable(columns, condition, "")) {
-            ArrayList<ArrayList<Object>> result = db.getObjResult();
-            return result != null && !result.isEmpty();
+        if (db1.readTable(columns, condition, "")) {
+            ArrayList<ArrayList<Object>> result = db1.getObjResult();
+            // Check if there is more than just the column name row
+            return result != null && result.size() > 1;
         }
         return false;
     }
@@ -176,6 +178,15 @@ public class SupplyItem {
         }
         else 
             System.out.println("Failed to Update New Data!");
+    }
+    
+    public void deleteSupplyItem(String supplierId, String itemId){
+        Object[][] condition = {{"supplier_id", supplierId}, {"item_id", itemId}};
+        
+        if(db.deleteRecord(condition))
+            System.out.println("The Data Has Been Deleted!");
+        else
+            System.out.println("Failed to Delete The Data");
     }
 
 }
