@@ -132,6 +132,7 @@ public class Inventory implements Runnable{
         return true;
     }
 
+
     public static Inventory getInstance(){
         return inventory;
     }
@@ -141,5 +142,25 @@ public class Inventory implements Runnable{
     public void run() {
         restartInventory();
     }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        for(Item i : itemList){
+            sb.append(i).append("\n");
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Inventory inventory = (Inventory) o;
+        return itemList.equals(inventory.itemList);
+    }
+
 }
 

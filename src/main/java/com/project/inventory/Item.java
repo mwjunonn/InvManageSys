@@ -2,6 +2,7 @@ package com.project.inventory;
 
 
 import java.util.InputMismatchException;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -159,6 +160,18 @@ public class Item{
         }
     }
 
+    public static int indexOfSplit(String unit){
+        if (unit.matches("^\\d+(?:\\.\\d+)?[a-zA-Z]+$")) {//Means matching 1.2kg or 12kg
+            Matcher matcher = Pattern.compile("\\d+(?:\\.\\d+)?").matcher(unit); //Number part
+            if (matcher.find())//Find if there have number part, should have.
+                return matcher.end();
+            else
+                throw new InputMismatchException("Something error when finding the number part");
+        }else{
+            return -1;
+        }
+    }
+
     @Override
     public String toString() {
         if(quantity % 1 != 0 && per_unit % 1 != 0) //Two is double
@@ -171,16 +184,14 @@ public class Item{
             return String.format("%s\t%s\tRM%.2f\t%d/%d%s", itemName, itemType,latestPrice, (int)quantity, (int)per_unit, itemUnit);
     }
 
-    public static int indexOfSplit(String unit){
-        if (unit.matches("^\\d+(?:\\.\\d+)?[a-zA-Z]+$")) {//Means matching 1.2kg or 12kg
-            Matcher matcher = Pattern.compile("\\d+(?:\\.\\d+)?").matcher(unit); //Number part
-            if (matcher.find())//Find if there have number part, should have.
-                return matcher.end();
-            else
-                throw new InputMismatchException("Something error when finding the number part");
-        }else{
-            return -1;
-        }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Item item = (Item) o;
+        return latestPrice == item.latestPrice && quantity == item.quantity && per_unit == item.per_unit && itemId.equals(item.itemId) && itemName.equals(item.itemName) && itemType.equals(item.itemType) && itemUnit.equals(item.itemUnit);
     }
 
     public enum itemTypeConstant{
