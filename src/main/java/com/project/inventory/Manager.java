@@ -79,4 +79,8 @@ public class Manager extends User {
         }
     }
     
+    public void deleteStaff(String deleteID){
+        db.deleteRecord(new String[][]{{"user_id", deleteID}});
+    }
+    
 }

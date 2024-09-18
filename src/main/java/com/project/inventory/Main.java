@@ -20,13 +20,17 @@ public abstract class Main {
         int choice = 0;
         
         do{
-            System.out.println("[Welcome to MIXUE Inventory System]");
-            System.out.println("-----------------------------------");
-            System.out.println("1. Login");
-            System.out.println("2. Register");
-            System.out.println("3. Exit");
-            System.out.print("Your Choice: ");
-            choice = scan.nextInt();
+            try{
+                System.out.println("[Welcome to MIXUE Inventory System]");
+                System.out.println("-----------------------------------");
+                System.out.println("1. Login");
+                System.out.println("2. Register");
+                System.out.println("3. Exit");
+                System.out.print("Your Choice: ");
+                choice = Integer.parseInt(scan.nextLine());
+            }catch(NumberFormatException ex){
+                System.out.println("Please enter integer only.");
+            }
 
             System.out.println("");
             
@@ -47,7 +51,7 @@ public abstract class Main {
     }
     
     public static void loginMenu(){
-        int choice;
+        int choice = 0;
         int decision;
         String id;
         String password;
@@ -55,14 +59,16 @@ public abstract class Main {
         //System.out.println("[Welcome to MIXUE Inventory System]");
         //System.out.println("-----------------------------------");
         do{
+            try{
             System.out.println("Login as: ");
             System.out.println("1. Manager");
             System.out.println("2. Inventory Admin");
             System.out.println("3. Return to last page");
             System.out.print("Your choice: ");
-            choice = scan.nextInt();
-            scan.nextLine();
-            System.out.println();
+            choice = Integer.parseInt(scan.nextLine());
+            }catch (NumberFormatException ex){
+                System.out.println("Please enter integer only.");
+            }
             switch(choice){
                 case 1:
                     Manager manager = new Manager();
@@ -86,7 +92,7 @@ public abstract class Main {
                                     break;
                                 case 2:     //Current Stock Report
                                     break;
-                                case 3:     //Display all supplier (If don't need cut this out)
+                                case 3:     //Supplier Menu
                                     supplierMenu();
                                     break;
                                 case 4:     //All staff details
@@ -95,10 +101,13 @@ public abstract class Main {
                                     break;
                                 case 5:     //Modify staff details
                                     manager.displayAllUser();
-                                    System.out.println("---------------------------------------\n");
-                                    modifyUserMenu();
+                                    System.out.println("------------------------------------------------------------------------\n");
+                                    modifyUser();
                                     break;
                                 case 6:     //Delete staff
+                                    manager.displayAllUser();
+                                    System.out.println("------------------------------------------------------------------------\n");
+                                    deleteUser();
                                     break;
                                 case 7:
                                     System.out.println("\nReturning to last page.\n");
@@ -177,7 +186,6 @@ public abstract class Main {
         //If found out how to clear screen, enable this two
         //System.out.println("[Welcome to MIXUE Inventory System]");
         //System.out.println("-----------------------------------");
-        scan.nextLine();
         System.out.println("Require manager to approve registration.");
         System.out.print("Enter Manager ID: ");
         managerID = scan.nextLine();
@@ -298,15 +306,19 @@ public abstract class Main {
             // 1 = Manager, 2 = Inventory Admin
             case 1:
                 do {
-                System.out.println("1. Inventory");         //order item @ purchase order
-                System.out.println("2. Current Stock Report");
-                System.out.println("3. Display all supplier");      //Not sure put here or wat, people incharge supplier can modify this
-                System.out.println("4. All staff details");
-                System.out.println("5. Modify staff details");
-                System.out.println("6. Delete staff");
-                System.out.println("7. Return to last page");
-                System.out.print("Choice > ");
-                decision = scan.nextInt();
+                    try{
+                        System.out.println("1. Inventory");         //order item @ purchase order
+                        System.out.println("2. Current Stock Report");
+                        System.out.println("3. Display all supplier");      //Not sure put here or wat, people incharge supplier can modify this
+                        System.out.println("4. All staff details");
+                        System.out.println("5. Modify staff details");
+                        System.out.println("6. Delete staff");
+                        System.out.println("7. Return to last page");
+                        System.out.print("Choice > ");
+                        decision = Integer.parseInt(scan.nextLine());
+                    }catch(NumberFormatException ex){
+                        System.out.println("Please enter integer only.");
+                    }
                     if (decision < 1 || decision > 7) {
                         System.out.println();
                         System.out.println("Invalid input. Try again.");
@@ -316,11 +328,15 @@ public abstract class Main {
                 } while (decision < 1 || decision > 7);
             case 2:
                 do {
-                    System.out.println("1. Inventory");
-                    System.out.println("2. Purchase order status");
-                    System.out.println("3. Return to last page");
-                    System.out.print("Choice > ");
-                    decision = scan.nextInt();
+                    try{
+                        System.out.println("1. Inventory");
+                        System.out.println("2. Purchase order status");
+                        System.out.println("3. Return to last page");
+                        System.out.print("Choice > ");
+                        decision = Integer.parseInt(scan.nextLine());
+                    }catch(NumberFormatException ex){
+                        System.out.println("Please enter integer only.");
+                    }
                     if (decision < 1 || decision > 3) {
                         System.out.println();
                         System.out.println("Invalid input. Try again.");
@@ -334,7 +350,7 @@ public abstract class Main {
         return decision;
     }
     
-    public static void modifyUserMenu(){
+    public static void modifyUser(){
         Manager manager = new Manager();
         InventoryAdmin inventoryAdmin = new InventoryAdmin();
         
@@ -344,7 +360,6 @@ public abstract class Main {
         int modifyAttributes;
         int confirmation;
         
-        scan.nextLine();
         System.out.print("Enter an employee's ID to start modify: ");
         modifyID = scan.nextLine();
         if (!(manager.equals(modifyID)) && !(inventoryAdmin.equals(modifyID))) {
@@ -423,6 +438,37 @@ public abstract class Main {
                 }
             }while (modifyAttributes != 4);
             
+        }
+    }
+    
+    public static void deleteUser(){
+        
+        Manager manager = new Manager();
+        InventoryAdmin inventoryAdmin = new InventoryAdmin();
+        
+        String deleteID = new String();
+        int confirmation = 0;
+        
+        System.out.print("Enter an employee's ID to delete: ");
+        deleteID = scan.nextLine();
+        if (!(manager.equals(deleteID)) && !(inventoryAdmin.equals(deleteID))) {
+            System.out.println("User not exist.");
+        }
+        else{
+            try{
+                System.out.println("You are deleting user");
+                System.out.println("Name: " + manager.getCurrentName() + "\t" + "ID: " + manager.getCurrentID());
+                System.out.println("Confirm delete the user? (0 for yes / 1 for no) > ");
+                confirmation = Integer.parseInt(scan.nextLine());
+            }catch(NumberFormatException ex){
+                System.out.println("Please enter integer only.");
+            }
+            if (confirmation == 0) {
+                System.out.println("Deletion Complete.");
+                manager.deleteStaff(deleteID);
+            }
+            else
+                System.out.println("Action Ignore.");
         }
     }
 
@@ -750,6 +796,8 @@ public abstract class Main {
                 case 8:
                     displayAllSupplyItems(supplyItemManager, supplyItem);
                     deleteSupplyItem();
+                    break;
+                case 9:
                     break;
                 default:
                     System.out.println("Invalid Options! Please Try Again...");
