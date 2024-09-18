@@ -41,7 +41,8 @@ public class InventoryUI extends JFrame {
     public void inventoryListGui() {
         JTextField inventory_search = new JTextField(16);
         inventory_search.setEditable(true);
-        inventory_search.requestFocusInWindow();
+        inventory_search.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        inventory_search.setToolTipText("Search Item");
         inventory_search.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -71,12 +72,15 @@ public class InventoryUI extends JFrame {
 
             @Override
             public void focusGained(FocusEvent e) {
+                inventory_search.setText("");
+                inventory_search.setForeground(Color.BLACK);
                 inventory_search.getInputContext().selectInputMethod(Locale.getDefault());
             }
 
             @Override
             public void focusLost(FocusEvent e) {
-
+                inventory_search.setText("Search Item");
+                inventory_search.setForeground(Color.GRAY);
             }
         });
         pane.add(inventory_search, BorderLayout.NORTH);
@@ -102,16 +106,10 @@ public class InventoryUI extends JFrame {
         updateTableModel(items);
         inventory_list = new JTable(model);
         inventory_list.setFont(new Font("MiSans", Font.PLAIN, 12));
+        inventory_list.setRowHeight(32);
         inventory_list.addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {
-                int index = inventory_list.getSelectedRow();
-                Vector data = model.getDataVector().get(index);
-                for (int i = 1; i < items.size(); i++) {
-                    if(((Item)items.get(i)).getItemName().equals(data.getFirst())){
-                        inventorySelectedIndex = i  - 1;
-                        break;
-                    }
-                }
+                inventorySelectedIndex = inventory_list.getSelectedRow();
                 dialog.setVisible(false);
                 dialog.dispose();
             }
@@ -129,8 +127,8 @@ public class InventoryUI extends JFrame {
         String[] columns;
         if (table.size() > 1) {
             if (table.get(1) instanceof Item && table.get(0) instanceof String[]) {
-                row = new String[table.size()][((String[]) table.get(0)).length];
-                for (int i = 1; i < row.length; i++) {
+                row = new String[table.size() - 1][((String[]) table.get(0)).length];
+                for (int i = 1; i < row.length + 1; i++) {
                     int j = 0;
                     for (String str : table.get(i).toString().split("\t")) {
                         row[i - 1][j] = str;

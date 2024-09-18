@@ -1,6 +1,9 @@
 package com.project.inventory;
 
 
+import java.util.InputMismatchException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Item{
     private String itemId ="null", itemName, itemType, itemUnit;
@@ -121,8 +124,9 @@ public class Item{
     }
 
     public boolean delete(){
+        Inventory inventory = Inventory.getInstance();
         if(modifyColumn("status", 0)){
-            Inventory.restartInventory();
+            inventory.restartInventory();
             return true;
         }else{
             return false;
@@ -130,10 +134,11 @@ public class Item{
     }
 
     public String generateID(){
+        Inventory inventory = Inventory.getInstance();
         StringBuilder id = new StringBuilder("I");
         do {
             id.append(Math.round(Math.random() * 10000));
-        }while (Inventory.checkIdUnique(id.toString()));
+        }while (!inventory.checkIdUnique(id.toString()));
         return id.toString();
     }
 
@@ -164,5 +169,34 @@ public class Item{
             return String.format("%s\t%s\tRM%.2f\t%.2f/%d%s", itemName, itemType,latestPrice, quantity, (int)per_unit, itemUnit);
         else //Two is integer
             return String.format("%s\t%s\tRM%.2f\t%d/%d%s", itemName, itemType,latestPrice, (int)quantity, (int)per_unit, itemUnit);
+    }
+
+    public static int indexOfSplit(String unit){
+        if (unit.matches("^\\d+(?:\\.\\d+)?[a-zA-Z]+$")) {//Means matching 1.2kg or 12kg
+            Matcher matcher = Pattern.compile("\\d+(?:\\.\\d+)?").matcher(unit); //Number part
+            if (matcher.find())//Find if there have number part, should have.
+                return matcher.end();
+            else
+                throw new InputMismatchException("Something error when finding the number part");
+        }else{
+            return -1;
+        }
+    }
+
+    public enum itemTypeConstant{
+        POWDER("Powder"),
+        DRINKS("Drinks"),
+        FRUIT("Fruit"),
+        INGREDIENT("Ingredient");
+
+        private final String value;
+
+        itemTypeConstant(String value){
+            this.value = value;
+        }
+
+        public String getValue(){
+            return value;
+        }
     }
 }
