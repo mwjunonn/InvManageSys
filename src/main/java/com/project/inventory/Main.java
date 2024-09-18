@@ -7,7 +7,7 @@ public abstract class Main {
     private static Scanner scan = new Scanner(System.in);
     //static ProcessBuilder processBuilder = new ProcessBuilder(); //For clear screen use, if cannot clear screen delete it
     
-    public static void main(String[] args) {
+    public static void main(String[] args) {        
         Locale.setDefault(Locale.ENGLISH);
         Database.startDatabase();
         mainMenu();
@@ -94,6 +94,9 @@ public abstract class Main {
                                     System.out.println("\n");
                                     break;
                                 case 5:     //Modify staff details
+                                    manager.displayAllUser();
+                                    System.out.println("---------------------------------------\n");
+                                    modifyUserMenu();
                                     break;
                                 case 6:     //Delete staff
                                     break;
@@ -329,6 +332,98 @@ public abstract class Main {
                 break;
         }
         return decision;
+    }
+    
+    public static void modifyUserMenu(){
+        Manager manager = new Manager();
+        InventoryAdmin inventoryAdmin = new InventoryAdmin();
+        
+        String modifyID = new String();
+        String modifyData = new String();
+        String tempPasswordHolder = new String();
+        int modifyAttributes;
+        int confirmation;
+        
+        scan.nextLine();
+        System.out.print("Enter an employee's ID to start modify: ");
+        modifyID = scan.nextLine();
+        if (!(manager.equals(modifyID)) && !(inventoryAdmin.equals(modifyID))) {
+            System.out.println("User not exist.");
+        }
+        else{
+            do {
+                System.out.println("You are currently modifying " + 
+                        "\nName: " + manager.getCurrentName() + "\tID: " + manager.getCurrentID());
+                System.out.println("\nSelect an attribute to modify: ");
+                System.out.println("1. Name");
+                System.out.println("2. User Password");
+                System.out.println("3. Email");
+                System.out.println("4. Return to last page");
+                System.out.print("> ");
+                modifyAttributes = scan.nextInt();
+                scan.nextLine();
+                switch(modifyAttributes){
+                    case 1:
+                        System.out.println("Current user name: " + manager.getCurrentName());
+                        System.out.print("New user name: ");
+                        modifyData = scan.nextLine();
+                        System.out.print("Confirm modify? (0 for Yes / 1 for No) > ");
+                        confirmation = scan.nextInt();
+                        if (confirmation == 0) {
+                            manager.setName(modifyData);
+                            manager.modifyStaff(modifyID, modifyAttributes);
+                            System.out.println("User Name Modified Successfully.");
+                        }
+                        else
+                            System.out.println("Ignore changes.");
+                        break;
+                    case 2:
+                        System.out.println("Current Password: " + manager.getCurrentPassword());
+                        System.out.print("New Password: ");
+                        modifyData = scan.nextLine();
+                        System.out.println("Confirm Password: ");
+                        tempPasswordHolder = scan.nextLine();
+                        while(!(modifyData.equals(tempPasswordHolder))){
+                            System.out.println("Password not match. Try again");
+                            System.out.print("New Password: ");
+                            modifyData = scan.nextLine();
+                            System.out.print("Confirm Password: ");
+                            tempPasswordHolder = scan.nextLine();
+                        }
+                        System.out.print("Confirm modify? (0 for Yes / 1 for No) > ");
+                        confirmation = scan.nextInt();
+                        if (confirmation == 0) {
+                            manager.setPassword(modifyData);
+                            manager.modifyStaff(modifyID, modifyAttributes);
+                            System.out.println("User Password Modified Successfully.");
+                        }
+                        else
+                            System.out.println("Ignore changes.");
+                        break;
+                    case 3:
+                        System.out.println("Current Email: " + manager.getCurrentEmail());
+                        System.out.print("New Email: ");
+                        modifyData = scan.nextLine();
+                        System.out.print("Confirm modify? (0 for Yes / 1 for No) > ");
+                        confirmation = scan.nextInt();
+                        if (confirmation == 0) {
+                            manager.setEmail(modifyData);
+                            manager.modifyStaff(modifyID, modifyAttributes);
+                            System.out.println("User Password Modified Successfully.");
+                        }
+                        else
+                            System.out.println("Ignore changes.");
+                        break;
+                    case 4:
+                        System.out.println("Returning to last page.");
+                        break;
+                    default:
+                        System.out.println("Invalid input. Try again!");
+                        break;
+                }
+            }while (modifyAttributes != 4);
+            
+        }
     }
 
     private static void inventoryMenu(){
