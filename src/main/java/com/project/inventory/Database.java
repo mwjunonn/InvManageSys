@@ -45,6 +45,7 @@ public class Database {
         try {
             con = DriverManager.getConnection(dbURL, "assignment", "123456");
             con.setAutoCommit(true);
+
             if(con.isValid(1))
                 success = true;
         } catch (Exception e) {
@@ -93,7 +94,7 @@ public class Database {
      * @param parameter Parameter that will replace the '?' respectively. Parameter will automatically suit the SQL query standard according to the data type. Eg: String "marcowong" will be converted to 'marcowong'
      *  @return {@code true} means successful, {@code false} means unsuccessful.
      */
-    public synchronized boolean execute(String sql, Object[] parameter) {
+    public  boolean execute(String sql, Object[] parameter) {
         try {
             PreparedStatement stmt = con.prepareStatement(sql,ResultSet. TYPE_SCROLL_INSENSITIVE,
                     ResultSet. CONCUR_UPDATABLE);

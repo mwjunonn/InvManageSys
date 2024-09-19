@@ -142,7 +142,7 @@ public abstract class Main {
                         break;
                 }
             } else if (user.permission().equals(User.Permission.ADMIN)) {
-                purchaseOrder purchaseorder = new purchaseOrder(user.getId());
+                purchaseOrder purchaseorder = new purchaseOrder(user.getCurrentID());
                 Order order = new Order();
                 switch (decision) {
                     case 1:     //Restock inventory
