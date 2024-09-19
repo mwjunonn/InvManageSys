@@ -1,5 +1,6 @@
 package com.project.inventory;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -9,7 +10,9 @@ public class SupplyItem {
     private static Database db = new Database("supplier_item");
     private String supplierId, itemId;
     private double shippingFee, cost;
+    private String itemName;
     public static int supplyItemNum = 0;
+    
     
     
     //constructor
@@ -20,6 +23,14 @@ public class SupplyItem {
     public SupplyItem(String supplierId, String itemId, double shippingFee, double cost ){
         this.supplierId = supplierId;
         this.itemId = itemId;
+        this.shippingFee = shippingFee;
+        this.cost = cost;
+    }
+    
+    public SupplyItem(String supplierId, String itemId, String itemName, double shippingFee, double cost){
+        this.supplierId = supplierId;
+        this.itemId = itemId;
+        this.itemName = itemName;
         this.shippingFee = shippingFee;
         this.cost = cost;
     }
@@ -37,6 +48,10 @@ public class SupplyItem {
     public double getCost(){
         return cost;
     }
+    public String getItemName(){
+        return itemName;
+    }
+    
     
     //setter
     public void setSupplierId(String supplierId){
@@ -53,57 +68,97 @@ public class SupplyItem {
     }
     
     
-    //setter
+    public String toString(){
+        return String.format("| %-11s | %-10s | %-16.2f | %-12.2f |\n", supplierId, itemId, shippingFee, cost);
+    }
+    
+    public String toString2(){
+        return String.format(" %-11s | %-10s | %-20s | %-16.2f | %-12.2f |", supplierId, itemId, itemName, shippingFee, cost);
+    }
     
    
     
-    public ArrayList<ArrayList<Object>> getAllSupplyItem(){
+    public ArrayList<SupplyItem> getAllSupplyItem(){
         String[] columns = {"supplier_id", "supplier_item.item_id", "inventory.item_name", "shipping_fee", "supplier_item.cost"};
         String additional = " JOIN inventory ON supplier_item.item_id = inventory.item_id";
-
-        
+        ArrayList<SupplyItem> supplyItems = new ArrayList<>();
+        SupplyItem supplyItem;
+        double shipping_fee = 0.00, cost2 = 0.00;
+    
         db.readTable(columns, new Object[][]{}, additional);
         
-        ArrayList<ArrayList<Object>> result = db.getObjResult();
+        ArrayList<String> result = db.getResult();
         
-        
+        for(int i =1; i < result.size();i++){
+            String[] supplyItemData = result.get(i).split(Database.delimiter);
+            
+            try{
+                shipping_fee = Double.parseDouble(supplyItemData[3]);
+            }catch(NumberFormatException ex){
+                System.out.println("Error: Parsing Shipping Fee");
+            }
+            try{
+                cost2 = Double.parseDouble(supplyItemData[4]);
+            }catch(NumberFormatException ex){
+                System.out.println("Error: Parsing Cost");
+            }
+            
+            
+            
+            supplyItem = new SupplyItem(supplyItemData[0], supplyItemData[1], supplyItemData[2],shipping_fee, cost2);
+            supplyItems.add(supplyItem);
+            
+        }
 
-        supplyItemNum = result.size(); 
+        supplyItemNum = result.size() -1; 
         
         
-        return result;
+        return supplyItems;
         
     }
     
-    public String[][] getAllSupplyItem(String supplierId, String itemId){
+    public SupplyItem getAllSupplyItem(String supplierId, String itemId){
         String[] columns = {"supplier_id", "supplier_item.item_id", "shipping_fee", "supplier_item.cost"};
      
         Object[][] condition ={{"supplier_id", supplierId}, {"supplier_item.item_id", itemId}};
+        double shipping_fee =0.00, cost2 = 0.00; 
         
         db.readTable(columns, condition);
         
         ArrayList<ArrayList<Object>> result = db.getObjResult();
         
-        String[][] supplyItemInfo = new String[result.size()][columns.length];
-        
-        for(int i = 0; i < result.size(); i++){
-            for(int j = 0; j < result.get(i).size();j++){
-                supplyItemInfo[i][j] = result.get(i).get(j).toString();
-            }
+        if(result.size() <= 1){
+          
+            return null;
         }
-        return supplyItemInfo;
+       
+        ArrayList<Object> supplyItemData = result.get(1);
+        
+        try{
+            shipping_fee = Double.parseDouble(supplyItemData.get(2).toString());
+        }catch(NumberFormatException ex){
+            System.out.println("Error: Parsing Shipping Fee");
+        }
+        try{
+            cost2 = Double.parseDouble(supplyItemData.get(3).toString());
+        }catch(NumberFormatException ex){
+            System.out.println("Error: Parsing Cost");
+        }
+        
+        
+        return new SupplyItem(supplyItemData.get(0).toString(), supplyItemData.get(1).toString(), shipping_fee, cost2);
+        
         
     }
     
     public boolean isSupplierExists(String supplierId) {
-        Database db1 = new Database("supplier_item");
+        Database db1 = new Database("supplier");
 
         String[] columns = {"supplier_id"};
         Object[][] condition = {{"supplier_id", supplierId}};
 
         if (db1.readTable(columns, condition, "")) {
             ArrayList<ArrayList<Object>> result = db1.getObjResult();
-            // Check if there is more than just the column name row
             return result != null && result.size() > 1;
         }
         return false;
@@ -114,58 +169,47 @@ public class SupplyItem {
         String[] columns = {"item_id"};
         Object[][] condition = {{"item_id", itemId}};
 
-        if (db1.readTable(columns, condition, "")) {
+        if (db1.readTable(columns, condition)) {
             ArrayList<ArrayList<Object>> result = db1.getObjResult();
-            // Check if there is more than just the column name row
+           
             return result != null && result.size() > 1;
         }
         return false;
     }
+      
     
-    public double getItemCost(String itemID){
-        Database db1 = new Database("inventory");
-        String[] columns = {"cost"};
-        Object[][] condition = {{"item_id", itemID}};
-        double cost = 0.00;
-        
-        
-        db1.readTable(columns, condition);
-        
-        ArrayList<String> costResult = db1.getResult();
-        
-        
-        
-         if (costResult != null && !costResult.isEmpty()) {
-            try {
-                String costStr = costResult.get(1).replace(" |", "").trim();
-            
+    public boolean writeData(SupplyItem supplyItem){
            
-                cost = Double.parseDouble(costStr);
-            } catch (NumberFormatException ex) {
-                System.out.println("Error: Cannot Read Cost Value! - " + ex.getMessage());
-            }
-        } else {
-            System.out.println("Error: No cost data found for item ID: " + itemID);
-        }
-        
-        return cost;
-        
-    }
-    
-    public void writeData(SupplyItem supplyItem){
-         
-            String supplierId = supplyItem.getSupplierId();
-            String itemId = supplyItem.getItemId();
             double shippingFee = supplyItem.getShippingFee();
             double cost = supplyItem.getCost();
+            
+            if (isSupplierItemExists(supplyItem.getSupplierId(), supplyItem.getItemId())) {
+                System.out.println("This item is already associated with the supplier. Please enter a different item.");
+                return false;
+            }else{
         
-            String shippingFeeStr = String.valueOf(supplyItem.getShippingFee());
-            String costStr = String.valueOf(supplyItem.getCost());
-            String[] columns = {"supplier_id", "item_id", "shipping_fee", "cost"};
-            String[] value = {supplyItem.getSupplierId(), supplyItem.getItemId(), shippingFeeStr, costStr};
+                String shippingFeeStr = String.valueOf(supplyItem.getShippingFee());
+                String costStr = String.valueOf(supplyItem.getCost());
+                String[] columns = {"supplier_id", "item_id", "shipping_fee", "cost"};
+                String[] value = {supplyItem.getSupplierId(), supplyItem.getItemId(), shippingFeeStr, costStr};
 
-           db.insertTable(columns, value);    
+               db.insertTable(columns, value);  
+               return true;
+            }
      
+    }
+    
+    public boolean isSupplierItemExists(String supplierId, String itemId) {
+        String[] columns = {"supplier_id", "item_id"};
+        Object[][] condition = {
+            {"supplier_id", supplierId},
+            {"item_id", itemId}
+        };
+
+        db.readTable(columns, condition);
+        ArrayList<ArrayList<Object>> result = db.getObjResult();
+
+        return result.size() > 1;
     }
     
     public void updateData(String columnName, String supplierId, String itemId, String temp){
@@ -182,6 +226,15 @@ public class SupplyItem {
     
     public void deleteSupplyItem(String supplierId, String itemId){
         Object[][] condition = {{"supplier_id", supplierId}, {"item_id", itemId}};
+        
+        if(db.deleteRecord(condition))
+            System.out.println("The Data Has Been Deleted!");
+        else
+            System.out.println("Failed to Delete The Data");
+    }
+    
+     public void deleteSupplyItem(String supplierId){
+        Object[][] condition = {{"supplier_id", supplierId}};
         
         if(db.deleteRecord(condition))
             System.out.println("The Data Has Been Deleted!");

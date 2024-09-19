@@ -16,6 +16,11 @@ public class ForeignSupplier extends Supplier{
         super(supplierId, supplierName, supplierAddress, supplierEmail);
 
     }
+    public ForeignSupplier(String supplierId, String supplierName, String supplierAddress, String supplierEmail, String supplierType, double importDuty){
+        super(supplierId, supplierName, supplierAddress, supplierEmail);
+        this.supplierType = supplierType;
+        this.importDuty = importDuty;
+    }
 
     public String getSupplierType(){
         return supplierType;
@@ -34,8 +39,9 @@ public class ForeignSupplier extends Supplier{
     }
     
     @Override
-    public String toString(){
-        return super.toString() + String.format("\nSupplier Type: %s \nImport Duty: RM%.2f", "Foreign",importDuty);
+    public String toString() {
+        return super.toString() + String.format(" %-13s | %-15.2f |",
+             supplierType, importDuty);
     }
     
 }
