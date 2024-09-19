@@ -2,17 +2,23 @@ package com.project.inventory;
 
 import java.util.*;
 
-public class Inventory {
-    public static ArrayList<Item> itemList = new ArrayList<>();
-    private static Database db = new Database("inventory");
+/**
+ * A ItemBuilder, one and only one.
+ */
+public class Inventory implements Runnable{
+    private ArrayList<Item> itemList = new ArrayList<>();
+    private HashMap<String, Integer> itemNameWIthIndex= new HashMap<>();
+    private HashMap<String, Integer> itemIdWithIndex = new HashMap<>();
+    private Database db = new Database("inventory");
+    private static Inventory inventory = new Inventory();
 
-    public Inventory() {
-        restartInventory();
+    private Inventory() {
+        run();
     }
 
-    public static ArrayList<Object> getItemList() {
+    public ArrayList<Object> getItemListWithColumns() {
         ArrayList<Object> obj = (ArrayList<Object>)itemList.clone();
-        obj.add(0, new String[]{
+        obj.addFirst(new String[]{
                "Item Name",
                 "Item Type",
                 "Latest Price",
@@ -21,23 +27,28 @@ public class Inventory {
         return obj;
     }
 
-    public static void restartInventory() {
+    public ArrayList<Item> getItemList() {
+        return (ArrayList<Item>)itemList.clone();
+    }
+
+    public void restartInventory() {
+        closeInventory();
         HashMap<String, Integer> attributeIndex = new HashMap<>();
-        db.readTable(new String[]{Database.all});
+        db.readTable(new String[]{Database.all}, new Object[][]{{"status", Boolean.TRUE}});
         ArrayList<ArrayList<Object>> database = db.getObjResult();
         for (int i = 0; i < database.getFirst().size(); i++) {
             attributeIndex.put((String) database.getFirst().get(i), i);
         }
         for (int i = 1; i < database.size(); i++) {
             ArrayList<Object> row = database.get(i);
-            if(!row.get(attributeIndex.get("status")).equals(true))
-                continue;
+            itemNameWIthIndex.put((String) row.get(attributeIndex.get("item_name")), i - 1);
+            itemIdWithIndex.put((String) row.get(attributeIndex.get("item_id")), i - 1);
             itemList.add(new Item((String) row.get(attributeIndex.get("item_id")),
                     (String) row.get(attributeIndex.get("item_name")),
                     (String) row.get(attributeIndex.get("item_type")),
-                    (Integer) row.get(attributeIndex.get("quantity")),
+                    (Double) row.get(attributeIndex.get("quantity")),
                     (Double) row.get(attributeIndex.get("cost")),
-                    (Integer) row.get(attributeIndex.get("per_unit")),
+                    (Double) row.get(attributeIndex.get("per_unit")),
                     (String) row.get(attributeIndex.get("unit"))
             ));
         }
@@ -54,13 +65,22 @@ public class Inventory {
 //        }
     }
 
+
+
     public boolean addInventory(Item item) {
-        if(item.getItemId().equals("null") || item.getItemName().isEmpty()){
-            itemList.add(item);
-            return true;
-        }else{
-            return false;
+        if (item != null) {
+            if (!(item.getItemId().equals("null") || item.getItemName().isEmpty())) {
+                itemList.add(item);
+                itemNameWIthIndex.put(item.getItemName(), itemList.indexOf(item));
+                return true;
+            }
         }
+        return false;
+    }
+
+    public double adjustQuantity(int index, double newPerUnit){
+        Item item = itemList.get(index);
+        return item.getQuantity() / (newPerUnit / item.getPer_unit());
     }
 
     public Item getItem(int index) {
@@ -68,9 +88,18 @@ public class Inventory {
             restartInventory();
             return getItem(index);
         } else if (itemList.size() < index + 1)
-            return null;
+            return new Item();
         else
             return itemList.get(index);
+    }
+
+    public Item getItem(String itemName) {
+        Integer index = itemNameWIthIndex.get(itemName);
+        if(itemName != null && index != null) {
+            if(! itemName.equalsIgnoreCase("null") && ! itemList.isEmpty())
+                return getItem(index);
+        }
+        return new Item();
     }
 
     public void deleteItem(Item item) {
@@ -78,7 +107,7 @@ public class Inventory {
         itemList.remove(item);
     }
 
-    public static boolean checkIdUnique(String id) {
+    public boolean checkIdUnique(String id) {
         for(Item i : itemList){
             if(i.getItemId().equals(id)){
                 return false;
@@ -87,20 +116,51 @@ public class Inventory {
         return true;
     }
 
-    public Item getItem(String name) {
-        if (itemList.isEmpty()) {
-            restartInventory();
-            return getItem(name);
-        }
-        for (Item item : itemList) {
-            if(item.getItemName().equals(name))
-                return item;
-        }
-        return null;
-    }
-
-    public static void closeInventory(){
+    public void closeInventory(){
         itemList.clear();
     }
+
+    public boolean checkNameUnique(String itemName){
+        if(itemNameWIthIndex.containsKey(itemName)) //If this item name is contain in the HashMap, means it is not unique
+            return false;
+        for(String str : itemNameWIthIndex.keySet()){
+            if(itemName.equalsIgnoreCase(str)) {
+                itemNameWIthIndex.put(itemName, itemNameWIthIndex.get(str)); //add a different case to the hashmap but point to the same
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    public static Inventory getInstance(){
+        return inventory;
+    }
+
+
+    @Override
+    public void run() {
+        restartInventory();
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        for(Item i : itemList){
+            sb.append(i).append("\n");
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Inventory inventory = (Inventory) o;
+        return itemList.equals(inventory.itemList);
+    }
+
 }
 

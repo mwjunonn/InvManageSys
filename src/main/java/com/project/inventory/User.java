@@ -163,6 +163,21 @@ public abstract class User {
         return getAllName()[arrayCounter];
     }
     
+    public String getCurrentID(){
+        return getAllId()[arrayCounter];
+    }
+    
+    public String getCurrentPassword(){
+        return getAllPassword()[arrayCounter];
+    }
+    
+    public String getCurrentEmail(){
+        if (getAllEmail()[arrayCounter] == null || getAllEmail()[arrayCounter].equals(""))
+            return "None";
+        else
+            return getAllEmail()[arrayCounter];
+    }
+    
     // For assigning userID automatically without duplication causing any errors
     public int checkNonDuplicateID(){
         int tempId = userCount;
@@ -184,5 +199,14 @@ public abstract class User {
                 "\nName: " + name +
                 "\nPassword: " + password + 
                 "\nPosition: " + position;
+    }
+
+    /**
+     * Use this enum to divide the permission of Inventory
+     */
+    public enum Permission {
+        FULL_CONTROL,
+        ADMIN,
+        GENERAL
     }
 }

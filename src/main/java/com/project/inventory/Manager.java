@@ -55,12 +55,32 @@ public class Manager extends User {
         }
     }
     
-    public void modifyStaff(String name){
-        
+    
+    public void modifyStaff(String userID, int modifyAttributes){
+        String[][] modifyColumn;
+        String[][] conditions = {{"user_id", userID}};
+        switch(modifyAttributes){
+            case 1:     //Name
+                modifyColumn = new String[][]{{"name", super.name}};
+                db.updateTable(modifyColumn, conditions);
+                break;
+            case 2:     //Password
+                modifyColumn = new String[][]{{"password", super.password}};
+                db.updateTable(modifyColumn, conditions);
+                break;
+            case 3:     //Email
+                modifyColumn = new String[][]{{"email", super.email}};
+                db.updateTable(modifyColumn, conditions);
+                break;
+            case 4:     //None
+                break;
+            default:
+                break;
+        }
     }
     
-    public void modifyStaff(String name, String password){
-        
+    public void deleteStaff(String deleteID){
+        db.deleteRecord(new String[][]{{"user_id", deleteID}});
     }
     
 }
