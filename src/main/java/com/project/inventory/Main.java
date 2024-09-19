@@ -159,11 +159,13 @@ public abstract class Main {
                             case 6:
                                 order.displayMenu();
                                 break;
-
+                            case 7:
+                                System.out.println("Returning to last page.");
+                                break;
                             default:
                                 break;
                         }
-                    }while(decision != 6);
+                    }while(decision != 7);
                     }
                         else if(inventoryAdmin.equals(id) && !(inventoryAdmin.passwordValid(password))) {
                         System.out.println("Wrong Password! ");
@@ -342,19 +344,23 @@ public abstract class Main {
                     try{
                         System.out.println("1. Inventory");
                         System.out.println("2. Purchase order status");
-                        System.out.println("3. Return to last page");
+                        System.out.println("3. Update Purchase Order Menu");
+                        System.out.println("4. Delete Purchase Order");
+                        System.out.println("5. Update Order");
+                        System.out.println("6. Display Order Menu");
+                        System.out.println("7. Return to last page.");
                         System.out.print("Choice > ");
                         decision = Integer.parseInt(scan.nextLine());
                     }catch(NumberFormatException ex){
                         System.out.println("Please enter integer only.");
                     }
-                    if (decision < 1 || decision > 3) {
+                    if (decision < 1 || decision > 7) {
                         System.out.println();
                         System.out.println("Invalid input. Try again.");
                         System.out.println();
                     }
                     return decision;
-                } while (decision < 1 || decision > 3);
+                } while (decision < 1 || decision > 7);
             default:
                 break;
         }
