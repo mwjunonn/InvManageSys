@@ -1,6 +1,8 @@
 package com.project.inventory;
 
 import java.util.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 public abstract class Main {
     private static Scanner scan = new Scanner(System.in);
@@ -142,26 +144,22 @@ public abstract class Main {
                         break;
                 }
             } else if (user.permission().equals(User.Permission.ADMIN)) {
-                purchaseOrder purchaseorder = new purchaseOrder(user.getCurrentID());
                 Order order = new Order();
                 switch (decision) {
                     case 1:     //Restock inventory
-                        purchaseorder.generatePurchaseOrder();
+                        generatePurchaseOrder();
                         break;
                     case 2:     //Purchase order status
-                        purchaseorder.displayMenu();
+                        poMenu();
                         break;
                     case 3:
-                        purchaseorder.updatePOMenu();
+                        orderMenu();
                         break;
                     case 4:
-                        purchaseorder.deletePurchaseOrder();
                         break;
                     case 5:
-                        order.updateOrder();
                         break;
                     case 6:
-                        order.displayMenu();
                         break;
                     case 7:
                         System.out.println("Returning to last page.");
@@ -332,11 +330,8 @@ public abstract class Main {
                 do {
                     try{
                         System.out.println("1. Inventory");
-                        System.out.println("2. Purchase order status");
-                        System.out.println("3. Update Purchase Order Menu");
-                        System.out.println("4. Delete Purchase Order");
-                        System.out.println("5. Update Order");
-                        System.out.println("6. Display Order Menu");
+                        System.out.println("2. Purchase Order Menu");
+                        System.out.println("3. Order Menu");
                         System.out.println("7. Return to last page.");
                         System.out.print("Choice > ");
                         decision = Integer.parseInt(scan.nextLine());
@@ -1757,7 +1752,645 @@ public abstract class Main {
             System.out.println("No Supply Item Record...");
         }
     }
-    public static void poMenu(){
+    
+    //------------------------------------------------------------------------------------
+    private static void poMenu(){
+        int choice = 0;
 
+        do{
+            try{
+                System.out.println("-----------------------");
+                System.out.println("| Purchase Order Menu |");
+                System.out.println("-----------------------");
+                System.out.println("1. Order Items");
+                System.out.println("2. Display Purchase order");
+                System.out.println("3. Update Purchase Order");
+                System.out.println("4. Delete Purchase order");
+                System.out.println("5. Back");
+                System.out.print("Enter Your Choice: ");
+                choice = Integer.parseInt(scan.nextLine());
+            }catch(NumberFormatException ex){
+                System.out.println("Error: Your Input Choice Should Be An Integer!");
+            }
+            switch(choice){
+                case 1:
+                    generatePurchaseOrder();
+                    break;
+                case 2:
+                    displayPOMenu();
+                    break;
+                case 3:
+                    updatePOMenu();
+                    break;
+                case 4:
+                    deletePOMenu();
+                    break;
+                case 5:
+                    break;
+                default:
+                    System.out.println("Invalid Options! Please Try Again...");
+                    break;
+            }
+        }while(choice != 5);
     }
+    
+     private static void generatePurchaseOrder(){
+            PurchaseOrder purchaseorder = new PurchaseOrder();
+            String orderNo = purchaseorder.getNextOrderNumber();
+            purchaseorder.createPurchaseOrder(orderNo, new Date(), user.getCurrentID(), "Ordering");
+            generateOrder(orderNo);
+            
+            if(!purchaseorder.updatePurchaseOrder(orderNo, new Date(), user.getCurrentID(), "Pending Shipping", 0)){
+                System.out.println("Insertion of Purchase Order Failed!");
+            }
+            else{
+                System.out.println("Insertion of Purchase Order Succeed!");
+            }
+            enterToContinue();
+        }
+    
+     private static void displayPOMenu(){
+            System.out.println("1. Display All Purchase Orders");
+            System.out.println("2. Display by Search Order No");
+            System.out.print("Choice > ");
+            int choice = scan.nextInt();
+            switch(choice){
+                case 1:
+                    displayPO();
+                    scan.nextLine();
+                    enterToContinue();
+                    break;
+                case 2:
+                    displayPOSearch();
+                    enterToContinue();
+                    break;
+                default:
+                    break;
+            }
+        }
+    
+        private static void displayPO() {
+            PurchaseOrder purchaseorder = new PurchaseOrder();
+            ArrayList<PurchaseOrder> orders = purchaseorder.getAllPurchaseOrders();
+            if (orders.isEmpty()) {
+                System.out.println("No purchase orders found.");
+            } else {
+                System.out.println("--------------------------------------------------------------------------------------");
+                System.out.printf("| %-10s | %-15s | %-10s | %-20s | %-10s |\n", "Order No", "Order Date", "User ID", "Status", "Total Cost (RM)");
+                System.out.println("--------------------------------------------------------------------------------------");
+
+                for (PurchaseOrder po : orders) {
+                    System.out.println(po.toString());
+                }
+                System.out.println("--------------------------------------------------------------------------------------");
+            }
+        }
+        
+        private static void displayPOSearch(){
+            PurchaseOrder purchaseorder = new PurchaseOrder();
+            String orderNo;
+            scan.nextLine();
+            System.out.print("Please enter orderNo to find your purchase order: ");
+            orderNo = scan.nextLine();
+            
+            if (!orderNo.matches("^OD\\d{4}$")) {
+                System.out.println("Invalid order number format. It should start with 'OD' followed by exactly 4 digits (e.g., OD0001).");
+                return;  
+            }
+            
+            
+            ArrayList<PurchaseOrder> orders = purchaseorder.getPurchaseOrder(orderNo);
+
+           if (orders.isEmpty()) {
+                System.out.println("No purchase orders found.");
+            } else {
+                System.out.println("--------------------------------------------------------------------------------------");
+                System.out.printf("| %-10s | %-15s | %-10s | %-20s | %-10s |\n", "Order No", "Order Date", "User ID", "Status", "Total Cost (RM)");
+                System.out.println("--------------------------------------------------------------------------------------");
+
+                for (PurchaseOrder po : orders) {
+                    System.out.println(po.toString());
+                }
+                System.out.println("--------------------------------------------------------------------------------------");
+            }
+       }
+        
+        private static void updatePOMenu(){
+            PurchaseOrder purchaseorder = new PurchaseOrder();
+            boolean success;
+            double newTotalCost;
+            String dateInput;
+
+            System.out.print("Enter the order number of the purchase order to update: ");
+            String orderNo = scan.nextLine();
+
+            if (!orderNo.matches("^OD\\d{4}$")) {
+                System.out.println("Invalid order number format. It should start with 'OD' followed by exactly 4 digits (e.g., OD0001).");
+                return;
+            }
+            
+            if(!isOrderNoExist(orderNo)){
+                System.out.println("Order Number doesnt exist!");
+                return;
+            }
+            
+            System.out.println("What would you like to update?");
+            System.out.println("1. Order Date\n2. Status\n3. Total Cost\n4. Update All at Once\n5. Back");
+            System.out.print("Enter your choice > ");
+            int choice = scan.nextInt();
+            scan.nextLine();
+            
+            if (choice < 1 || choice > 5) {
+                System.out.println("Invalid choice. Please select a valid option.");
+                return;
+            }
+            switch(choice){
+                case 1:
+                    System.out.print("Enter new order date (yyyy-MM-dd): ");
+                    dateInput = scan.nextLine();
+                    Date newOrderDate = null;
+                    try {
+                        newOrderDate = new SimpleDateFormat("yyyy-MM-dd").parse(dateInput);
+                    } catch (ParseException e) {
+                        System.out.println("Invalid date format. Please use yyyy-MM-dd.");
+                        return;
+                    }
+                    success = purchaseorder.updatePurchaseOrder(orderNo, newOrderDate,null, null, 0);
+                    if (success) {
+                        System.out.println("Order date updated successfully.");
+                    } else {
+                        System.out.println("Failed to update order date.");
+                    }
+                    enterToContinue();
+                    break;
+                case 2:
+                    updateStatus(orderNo);
+                    break;
+                case 3:
+                    System.out.print("Enter new total cost: ");
+                    newTotalCost = scan.nextDouble();
+                    success = purchaseorder.updatePurchaseOrder(orderNo, null, null, null, newTotalCost);
+                    if (success) {
+                        System.out.println("Total Cost updated successfully.");
+                    } else {
+                        System.out.println("Failed to update Total Cost.");
+                    }
+                    enterToContinue();
+                    break;
+                case 4: 
+                    System.out.print("Enter new order date (yyyy-MM-dd):");
+                    dateInput = scan.nextLine();
+
+                    try {
+                        newOrderDate = new SimpleDateFormat("yyyy-MM-dd").parse(dateInput);
+                    } catch (ParseException e) {
+                        System.out.println("Invalid date format.");
+                        return;
+                    }
+
+                    System.out.print("Enter new status:");
+                    String newStatus = scan.nextLine();
+
+                    System.out.print("Enter new total cost:");
+                    newTotalCost = scan.nextDouble();
+
+                    success = purchaseorder.updatePurchaseOrder(orderNo, newOrderDate,null, newStatus, newTotalCost);
+                    if (success) {
+                        System.out.println("Purchase order updated successfully.");
+                    } else {
+                        System.out.println("Failed to update purchase order.");
+                    }
+                    enterToContinue();
+                    break;
+                case 5:
+                    break;
+            }
+        }
+        
+        private static boolean isOrderNoExist(String orderNo){
+            PurchaseOrder purchaseOrder = new PurchaseOrder();
+            ArrayList<PurchaseOrder> purchaseorder = purchaseOrder.getAllPurchaseOrders();
+            for (PurchaseOrder purchaseorders : purchaseorder) {
+                if(purchaseorders.getOrderNo().equals(orderNo)){
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        private static void updateStatus(String orderNo) {
+            PurchaseOrder purchaseorder = new PurchaseOrder();
+            int choice = 0;
+            String newStatus = "";
+            while (true) {
+                System.out.println("1. Pending Shipping \n2. Out for delivery \n3. Delivered \n4. Return to last page");
+                System.out.print("Choose a new status: ");
+                choice = scan.nextInt();
+
+                if (choice >= 1 && choice <= 4) {
+                    switch (choice) {
+                        case 1:
+                            newStatus = "Pending Shipping";
+                            break;
+                        case 2:
+                            newStatus = "Out for delivery";
+                            break;
+                        case 3:
+                            newStatus = "Delivered";
+                            boolean success = purchaseorder.updateInventoryQuantity(orderNo);
+                            if (success){
+                                System.out.println("Inventory updated successfully for order number: " + orderNo);
+                            }
+                            else{
+                                System.out.println("Update of quantitiy failed!");
+                            }
+                            break;
+                        case 4:
+                            System.out.println("Returning to the last page...");
+                            return; 
+                    }
+                    break; 
+                } else {
+                    System.out.println("Invalid choice! Please enter a number between 1 and 4.");
+                }
+            }
+
+            // Proceed with the new status or return logic
+            if (choice != 4) {
+                System.out.println("New status set to: " + newStatus);
+            }
+            
+            boolean success = purchaseorder.updatePurchaseOrder(orderNo, null,null, newStatus, 0);
+            if (success) {
+                System.out.println("Status updated successfully.");
+            } else {
+                System.out.println("Failed to update status.");
+            }
+            enterToContinue();
+        }
+       
+        private static void deletePOMenu(){
+            PurchaseOrder purchaseorder = new PurchaseOrder();
+            displayPO();
+            System.out.print("Enter the Order No to delete: ");
+            String orderNo = scan.nextLine().trim();
+
+            if (!orderNo.matches("OD\\d{4}")) { 
+                System.out.println("Invalid order number format. It should start with 'OD' followed by exactly 4 digits (e.g., OD0001).");
+                return;
+            }
+            
+            purchaseorder.deletePurchaseOrder(orderNo);
+            enterToContinue();
+        }
+        
+        private static void orderMenu(){
+            int choice = 0;
+            do{
+                try{
+                    System.out.println("--------------");
+                    System.out.println("| Order Menu |");
+                    System.out.println("--------------");
+                    System.out.println("1. Order Items");
+                    System.out.println("2. Display Order");
+                    System.out.println("3. Update Order");
+                    System.out.println("4. Delete Order");
+                    System.out.println("5. Back");
+                    System.out.print("Enter Your Choice: ");
+                    choice = Integer.parseInt(scan.nextLine());
+                }catch(NumberFormatException ex){
+                    System.out.println("Error: Your Input Choice Should Be An Integer!");
+                }
+                switch(choice){
+                    case 1:
+                        generatePurchaseOrder();
+                        break;
+                    case 2:
+                        displayOrderMenu();
+                        break;
+                    case 3:
+                        displayOrder();
+                        updateOrder();
+                        break;
+                    case 4:
+                        displayOrder();
+                        deleteOrder();
+                        break;
+                    case 5:
+                        break;
+                    default:
+                        System.out.println("Invalid Options! Please Try Again...");
+                        break;
+                }
+            }while(choice != 5);
+        }
+        
+         private static void generateOrder(String orderNo) {
+            Order order = new Order();
+            String itemId;
+            String choice = "y";
+            String supplierId;
+            double totalCost;
+            double purchaseOrderTotalCost = 0.0;
+            do {
+                    System.out.print("Enter item ID to restock(999 to stop): ");
+                    itemId = scan.nextLine().trim();
+
+                    if (itemId.equals("999")){
+                        System.out.println("Restocking stopped!");
+                        break;
+                    }
+
+                    if (!isItemExists(itemId)) {
+                    System.out.println("Item not found.");
+                    continue;
+                    }
+                    System.out.println("Item found...");
+
+
+                    System.out.print("Enter quantity to add: ");
+                    int quantityToAdd;
+                    try {
+                        quantityToAdd = Integer.parseInt(scan.nextLine());
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid quantity. Please enter a number.");
+                        continue;
+                    }
+
+                    if (quantityToAdd <= 0) {
+                        System.out.println("Quantity must be greater than zero.");
+                        return;
+                    }
+
+                    supplierId = getSupplierIdbyItemId(itemId);
+
+                    totalCost = (getItemCost(itemId) * quantityToAdd) + (getShippingFee(itemId) * quantityToAdd) + getImportDuty(supplierId);
+                    purchaseOrderTotalCost += totalCost;
+
+                    //po.updateTotalCost(orderNo, purchaseOrderTotalCost);
+                    // Formula (quantity * price) + (shipping fee per kg * quantity) + import fee
+                    //Hvaent done
+                    System.out.printf("Total cost for this order: RM%.2f\n", totalCost);
+
+                    if(order.createOrder(itemId, orderNo, quantityToAdd, supplierId, totalCost)){
+                        System.out.println("Order Created for item " + itemId + " with supplier "+ supplierId);
+                    }
+                    else{
+                        System.out.println("Order Failed to create for item "+ itemId);
+                    }
+
+                    System.out.println("Do you want to order again (y/n)?");
+                    choice = scan.nextLine().toLowerCase();  
+
+                    if (!choice.equals("y") && !choice.equals("n")) {
+                        do{
+                            System.out.println("Invalid choice. Please enter 'y' for yes or 'n' for no.");
+                            System.out.println("Do you want to order again (y/n)?");
+                            choice = scan.nextLine().toLowerCase();  
+                        } while(!choice.equals("n"));
+                    }
+
+                } while(!choice.equals("n"));
+            updatePurchaseOrder(orderNo, purchaseOrderTotalCost);
+        }
+         
+        private static String[] getAllItemId() {
+                Database dbi = new Database("inventory");
+                String[] columns = {"item_id"};
+                dbi.readTable(columns);
+                ArrayList<String> list = dbi.getResult();
+                String[] itemList = new String[list.size()];
+                for (int i = 0; i< list.size(); i++){
+                    itemList[i] = list.get(i).replaceAll(Database.delimiter, "");
+                }
+                return itemList;
+            }
+
+        private static Object getSingleValue(String columnName, Object[][] condition, Database db) {
+            String[] columns = {columnName};
+
+            // Use the readTable method to query the database with the column name and condition
+            if (db.readTable(columns, condition)) {
+                ArrayList<ArrayList<Object>> results = db.getObjResult();
+
+                // Ensure there's more than just the header row (index 0)
+                if (results.size() > 1) {
+                    return results.get(1).get(0); // Return the first result of the first row
+                }
+            }
+            return null; // Return null if no result found
+        }
+
+        private static String getSupplierIdbyItemId(String itemId) {
+            Database dbsi = new Database("supplier_item"); 
+            Object[][] condition = {{"item_id", itemId}};
+            Object result = getSingleValue("supplier_id", condition, dbsi);
+            return result != null ? result.toString().trim() : null;
+        }
+
+        private static double getItemCost(String itemId) {
+            Database dbi = new Database("inventory");
+            Object[][] condition = {{"item_id", itemId}};
+            Object result = getSingleValue("cost", condition, dbi);
+            return result != null ? Double.parseDouble(result.toString()) : 0;
+        }
+
+        private static double getShippingFee(String itemId) {
+            Database dbsi = new Database("supplier_item"); 
+            Object[][] condition = {{"item_id", itemId}};
+            Object result = getSingleValue("shipping_fee", condition, dbsi);
+            return result != null ? Double.parseDouble(result.toString()) : 0;
+        }
+
+        private static double getImportDuty(String supplierId) {
+            Database dbs = new Database("supplier"); 
+            Object[][] condition = {{"supplier_id", supplierId}};
+            Object result = getSingleValue("import_duty", condition, dbs);
+            return result != null ? Double.parseDouble(result.toString()) : 0;
+        }
+        
+        private static boolean isItemExists(String inputItemId) {
+            String[] itemIds = getAllItemId();
+            for (String itemId : itemIds) {
+                if (itemId.equals(inputItemId)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        private static void displayOrderMenu(){
+            System.out.println("1. Display All Orders");
+            System.out.println("2. Display by Search Order No");
+            System.out.print("Choice > ");
+            int choice = scan.nextInt();
+            switch(choice){
+                case 1:
+                    displayOrder();
+                    scan.nextLine();
+                    enterToContinue();
+                    break;
+                case 2:
+                    displayOrderSearch();
+                    enterToContinue();
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+        private static void displayOrder() {
+            Order order = new Order();
+            ArrayList<Order> orders = order.getAllOrders();
+            if (orders.isEmpty()) {
+                System.out.println("No purchase orders found.");
+            } else {
+                System.out.println("--------------------------------------------------------------------------------------");
+                System.out.printf("| %-10s | %-15s | %-10s | %-20s | %-10s |\n", "Item Id", "Order No", "Quantity", "Supplier Id", "Total Cost (RM)");
+                System.out.println("--------------------------------------------------------------------------------------");
+
+                for (Order o : orders) {
+                    System.out.println(o.toString());
+                }
+                System.out.println("--------------------------------------------------------------------------------------");
+            }
+        }
+        
+         private static void displayOrderSearch(){
+                Order order = new Order();
+                String orderNo;
+                scan.nextLine();
+                System.out.print("Please enter orderNo to find your purchase order: ");
+                orderNo = scan.nextLine();
+
+                if (!orderNo.matches("^OD\\d{4}$")) {
+                    System.out.println("Invalid order number format. It should start with 'OD' followed by exactly 4 digits (e.g., OD0001).");
+                    return;  
+                }
+
+                ArrayList<Order> orders = order.getOrder(orderNo);
+
+               if (orders.isEmpty()) {
+                    System.out.println("No purchase orders found.");
+                } else {
+                    System.out.println("--------------------------------------------------------------------------------------");
+                    System.out.printf("| %-10s | %-15s | %-10s | %-20s | %-10s |\n", "Item Id", "Order No", "Quantity", "Supplier Id", "Total Cost (RM)");
+                    System.out.println("--------------------------------------------------------------------------------------");
+
+                    for (Order o : orders) {
+                        System.out.println(o.toString());
+                    }
+                    System.out.println("--------------------------------------------------------------------------------------");
+                }
+           }
+
+         private static void updateOrder() {
+             double itemCost;
+            Database db = new Database("order_item");
+            System.out.print("Enter the Item ID for the order you want to update:");
+            String itemId = scan.nextLine().trim();
+
+            System.out.print("Enter the Order No for the order you want to update:");
+            String orderNo = scan.nextLine().trim();
+
+            Object[][] condition = {{"item_id", itemId}, {"order_no", orderNo}};
+
+            String[] columns = {"item_id", "order_no", "quantity", "supplier_id", "total_cost"};
+            boolean orderExists = db.readTable(columns, condition);
+
+            if (!orderExists || db.getObjResult().size() <= 1) {
+                System.out.println("Order with Item ID " + itemId + " and Order No " + orderNo + " not found.");
+                return;
+            }
+
+            itemCost = getItemCost(itemId);
+
+            System.out.print("Enter the new Quantity: ");
+            int newQuantity = scan.nextInt();
+            scan.nextLine(); 
+
+            // Calculate the new total cost 
+            double newTotalCost = (newQuantity * getItemCost(itemId))  + (newQuantity * getShippingFee(itemId)) + getImportDuty(getSupplierIdbyItemId(itemId));
+
+            // Update quantity and total_cost in order_item table
+            Object[][] value = {{"quantity", newQuantity} ,{"total_cost", newTotalCost}};
+
+            if (db.updateTable(value, condition)) {
+                System.out.println("Order item updated successfully.");
+
+                // Update the total cost in the purchase_order 
+                updatePurchaseOrderTotalCost(orderNo);
+            } else {
+                System.out.println("Failed to update the order item.");
+            }
+        }
+         
+         private static void updatePurchaseOrder(String orderNo, double totalCost) {
+            Database dbpo = new Database("purchase_order");
+            Object[][] values = {{"total_cost", totalCost}};
+            Object[][] condition = {
+                {"order_no", orderNo}
+            };
+            dbpo.updateTable(values, condition);
+        }
+
+        // Method to update total_cost in purchase_order after updating order_item total_cost
+        private static void updatePurchaseOrderTotalCost(String orderNo) {
+            Database db = new Database("order_item");
+            Database dbpo = new Database("purchase_order");
+            // Get all order items for the given order_no
+            Object[][] condition  = {{"order_no", orderNo}};
+            String[] column = {"total_cost"};
+            boolean itemsExist = db.readTable(column, condition);
+
+            if (!itemsExist) {
+                System.out.println("No items found for Order No " + orderNo);
+                return;
+            }
+
+            // Calculate the new total cost by + total_cost of each item
+            double totalCost = 0;
+            ArrayList<ArrayList<Object>> resultArray = db.getObjResult();
+
+            for (int i = 1; i < resultArray.size(); i++) {
+                ArrayList<Object> row = resultArray.get(i);
+                Object costObj = row.get(0); 
+                if (costObj != null) {
+                    try {
+                        totalCost += Double.parseDouble(costObj.toString());
+                    } catch (NumberFormatException e) {
+                        System.out.println("Error adding total cost: " + costObj);
+                        return;
+                    }
+                }
+            }
+
+            Object[][] updatedValue = {{"total_cost", totalCost}};
+            Object[][] condition2 = {{"order_no", orderNo}};
+
+            if (dbpo.updateTable(updatedValue, condition2)) {
+                System.out.println("Total cost for purchase order updated successfully.");
+            } else {
+                System.out.println("Failed to update the total cost for the purchase order.");
+            }
+    }
+        
+        private static void deleteOrder(){
+            Order order = new Order();
+            String orderNo, itemId;
+            System.out.print("Enter Order No for deletion: ");
+            orderNo = scan.nextLine();
+            
+            System.out.print("Enter Item ID for deletion: ");
+            itemId = scan.nextLine();
+            
+            order.deleteOrder(orderNo, itemId);
+            enterToContinue();
+        }
+        
+        private static void enterToContinue(){
+            System.out.println("Press Enter to continue");
+            scan.nextLine();
+        }
+         
 }
