@@ -24,8 +24,8 @@ public class Manager extends User {
         super.position = position;
     }
     
-    public void permission(){
-        
+    public Permission permission(){
+        return Permission.FULL_CONTROL;
     }
     
     //Verify Id

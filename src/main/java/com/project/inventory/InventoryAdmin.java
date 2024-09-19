@@ -23,8 +23,8 @@ public class InventoryAdmin extends User {
         super.position = position;
     }
     
-    public void permission(){
-        
+    public Permission permission(){
+        return Permission.ADMIN;
     }
     
     public boolean equals(Object verify){

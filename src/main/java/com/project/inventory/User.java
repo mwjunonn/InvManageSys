@@ -30,7 +30,7 @@ public abstract class User {
     }
     
     //Permission?
-    public abstract void permission();
+    public abstract Permission permission();
     
     //Verify Name
     public static void nameValidation(String name){

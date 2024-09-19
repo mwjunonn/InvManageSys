@@ -4,8 +4,8 @@ import java.util.*;
 
 public abstract class Main {
     private static Scanner scan = new Scanner(System.in);
-    //static ProcessBuilder processBuilder = new ProcessBuilder(); //For clear screen use, if cannot clear screen delete it
-    
+    private static User user;
+
     public static void main(String[] args) {        
         Locale.setDefault(Locale.ENGLISH);
         Database.startDatabase();
@@ -15,9 +15,8 @@ public abstract class Main {
     }
     
     public static void mainMenu(){
-        User manager = new Manager();
         int choice = 0;
-        
+
         do{
             try{
                 System.out.println("[Welcome to MIXUE Inventory System]");
@@ -30,12 +29,12 @@ public abstract class Main {
             }catch(NumberFormatException ex){
                 System.out.println("Please enter integer only.");
             }
-
-            System.out.println("");
-            
+            System.out.println();
             switch(choice){
                 case 1:
-                    loginMenu();
+                    if (loginMenu()) {
+                        menu();
+                    }
                     break;
                 case 2:
                     registerMenu();
@@ -48,141 +47,132 @@ public abstract class Main {
             }
         }while (choice != 3);
     }
-    
-    public static void loginMenu(){
+
+    public static boolean loginMenu() {
         int choice = 0;
         int decision;
-        String id;
-        String password;
+        String id = "";
+        String password = "";
         //If found out how to clear screen, enable this two
         //System.out.println("[Welcome to MIXUE Inventory System]");
         //System.out.println("-----------------------------------");
-        do{
-            try{
-            System.out.println("Login as: ");
-            System.out.println("1. Manager");
-            System.out.println("2. Inventory Admin");
-            System.out.println("3. Return to last page");
-            System.out.print("Your choice: ");
-            choice = Integer.parseInt(scan.nextLine());
-            }catch (NumberFormatException ex){
+        do {
+            try {
+                System.out.println("Login as: ");
+                System.out.println("1. Manager");
+                System.out.println("2. Inventory Admin");
+                System.out.println("3. Return to last page");
+                System.out.print("Your choice: ");
+                choice = Integer.parseInt(scan.nextLine());
+            } catch (NumberFormatException ex) {
                 System.out.println("Please enter integer only.");
             }
-            switch(choice){
+            switch (choice) {
                 case 1:
-                    Manager manager = new Manager();
-                    
-                    System.out.println("Login as Manager"); 
+                    user = new Manager();
+                    System.out.println("Login as Manager");
                     System.out.print("ID: ");
                     id = scan.nextLine();
                     System.out.print("Password: ");
                     password = scan.nextLine();
                     System.out.println();
-                    if (manager.equals(id) && manager.passwordValid(password)) {
-                        System.out.println("Login Successful");
-                        System.out.println("Welcome " + manager.getCurrentName() + ".");
-                        System.out.println("---------------------------------------");
-
-                        do {
-                            decision = permissionMenu(choice);
-                           switch (decision){
-                                case 1:     //Restock Inventory
-                                    inventoryMenu();
-                                    break;
-                                case 2:     //Current Stock Report
-                                    break;
-                                case 3:     //Supplier Menu
-                                    supplierMenu();
-                                    break;
-                                case 4:     //All staff details
-                                    manager.displayAllUser();
-                                    System.out.println("\n");
-                                    break;
-                                case 5:     //Modify staff details
-                                    manager.displayAllUser();
-                                    System.out.println("------------------------------------------------------------------------\n");
-                                    modifyUser();
-                                    break;
-                                case 6:     //Delete staff
-                                    manager.displayAllUser();
-                                    System.out.println("------------------------------------------------------------------------\n");
-                                    deleteUser();
-                                    break;
-                                case 7:
-                                    System.out.println("\nReturning to last page.\n");
-                                    break;
-                                default:
-                                    break;
-                            }
-                        } while (decision != 7);
-                    }
-                    else if (manager.equals(id) && !(manager.passwordValid(password))) {
-                        System.out.println("Wrong Password!");
-                    }
-                    else
-                        System.out.println("Login Failed");
-                    System.out.println("");
                     break;
                 case 2:
-                    User inventoryAdmin = new InventoryAdmin();
-                    
+                    user = new InventoryAdmin();
                     System.out.println("Login as Inventory Admin");
                     System.out.print("ID: ");
                     id = scan.nextLine();
                     System.out.print("Password: ");
                     password = scan.nextLine();
                     System.out.println();
-                    if (inventoryAdmin.equals(id) && inventoryAdmin.passwordValid(password)) {
-                        System.out.println("Login Successful");
-                        System.out.println("Welcome " + inventoryAdmin.getCurrentName() + ".");
-                        System.out.println("---------------------------------------");
-                        purchaseOrder purchaseorder = new purchaseOrder(id);
-                        Order order = new Order();
-                        do{
-                            decision = permissionMenu(choice);
-                            switch (decision){
-                                case 1:     //Restock inventory
-                                purchaseorder.generatePurchaseOrder();
-                                break;
-                            case 2:     //Purchase order status
-                                purchaseorder.displayMenu();
-                                break;
-                            case 3:
-                                purchaseorder.updatePOMenu();
-                                break;
-                            case 4:
-                                purchaseorder.deletePurchaseOrder();
-                                break;
-                            case 5:
-                                order.updateOrder();
-                                break;
-                            case 6:
-                                order.displayMenu();
-                                break;
-                            case 7:
-                                System.out.println("Returning to last page.");
-                                break;
-                            default:
-                                break;
-                        }
-                    }while(decision != 7);
-                    }
-                        else if(inventoryAdmin.equals(id) && !(inventoryAdmin.passwordValid(password))) {
-                        System.out.println("Wrong Password! ");
-                    }
-                    else
-                        System.out.println("Login Failed");
-                    System.out.println();
                     break;
                 case 3:
-                    break;
+                    return false;
                 default:
                     System.out.println("Invalid Input! Try Again");
                     break;
             }
-        }while (choice != 3);
+        } while (choice < 1 || choice > 3);
+        if (user.equals(id) && user.passwordValid(password)) {
+            System.out.println("Login Successful");
+            System.out.println("Welcome " + user.getCurrentName() + ".");
+            System.out.println("---------------------------------------");
+            return true;
+        } else if (user.equals(id) && !(user.passwordValid(password))) {
+            System.out.println("Wrong Password!");
+        } else
+            System.out.println("Login Failed");
+        System.out.println();
+        return false;
     }
-    
+
+    public static void menu() {
+        int decision;
+        do {
+            decision = permissionMenu(user.permission());
+            if (user.permission().equals(User.Permission.FULL_CONTROL)) {
+                Manager manager = (Manager) user;
+                switch (decision) {
+                    case 1:     //Restock Inventory
+                        inventoryMenu();
+                        break;
+                    case 2:     //Current Stock Report
+                        break;
+                    case 3:     //Supplier Menu
+                        supplierMenu();
+                        break;
+                    case 4:     //All staff details
+                        manager.displayAllUser();
+                        System.out.println("\n");
+                        break;
+                    case 5:     //Modify staff details
+                        manager.displayAllUser();
+                        System.out.println("------------------------------------------------------------------------\n");
+                        modifyUser();
+                        break;
+                    case 6:     //Delete staff
+                        manager.displayAllUser();
+                        System.out.println("------------------------------------------------------------------------\n");
+                        deleteUser();
+                        break;
+                    case 7:
+                        System.out.println("\nReturning to last page.\n");
+                        break;
+                    default:
+                        break;
+                }
+            } else if (user.permission().equals(User.Permission.ADMIN)) {
+                purchaseOrder purchaseorder = new purchaseOrder(user.getId());
+                Order order = new Order();
+                switch (decision) {
+                    case 1:     //Restock inventory
+                        purchaseorder.generatePurchaseOrder();
+                        break;
+                    case 2:     //Purchase order status
+                        purchaseorder.displayMenu();
+                        break;
+                    case 3:
+                        purchaseorder.updatePOMenu();
+                        break;
+                    case 4:
+                        purchaseorder.deletePurchaseOrder();
+                        break;
+                    case 5:
+                        order.updateOrder();
+                        break;
+                    case 6:
+                        order.displayMenu();
+                        break;
+                    case 7:
+                        System.out.println("Returning to last page.");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        } while (decision != 7);
+    }
+
     public static void registerMenu(){
         String managerID = new String();
         String managerPassword = new String();
@@ -312,12 +302,11 @@ public abstract class Main {
             
     }
     
-    public static int permissionMenu(int choice){
+    public static int permissionMenu(User.Permission permission){
         int decision = 0;
-        
-        switch (choice){
+        switch (permission){
             // 1 = Manager, 2 = Inventory Admin
-            case 1:
+            case FULL_CONTROL:
                 do {
                     try{
                         System.out.println("1. Inventory");         //order item @ purchase order
@@ -339,7 +328,7 @@ public abstract class Main {
                     }
                     return decision;
                 } while (decision < 1 || decision > 7);
-            case 2:
+            case ADMIN:
                 do {
                     try{
                         System.out.println("1. Inventory");
@@ -1767,6 +1756,8 @@ public abstract class Main {
         }else{
             System.out.println("No Supply Item Record...");
         }
-        
-    }   
+    }
+    public static void poMenu(){
+
+    }
 }
