@@ -119,24 +119,36 @@ public class Main {
                         System.out.println("Login Successful");
                         System.out.println("Welcome " + inventoryAdmin.getCurrentName() + ".");
                         System.out.println("---------------------------------------");
-                        
+                        purchaseOrder purchaseorder = new purchaseOrder(id);
+                        Order order = new Order();
                         do{
                             decision = permissionMenu(choice);
                             switch (decision){
                                 case 1:     //Restock inventory
-                                    break;
-                                case 2:     //Purchase order status
-                                    break;
-                                case 3:
-                                    System.out.println("\nReturning to last page.\n");
-                                    break;
-                                default:
-                                    break;
-                            }
+                                purchaseorder.generatePurchaseOrder();
+                                break;
+                            case 2:     //Purchase order status
+                                purchaseorder.displayMenu();
+                                break;
+                            case 3:
+                                purchaseorder.updatePOMenu();
+                                break;
+                            case 4:
+                                purchaseorder.deletePurchaseOrder();
+                                break;
+                            case 5:
+                                order.updateOrder();
+                                break;
+                            case 6:
+                                order.displayMenu();
+                                break;
+
+                            default:
+                                break;
                         }
-                        while(decision != 3);
+                    }while(decision != 6);
                     }
-                    else if (inventoryAdmin.equals(id) && !(inventoryAdmin.passwordValid(password))) {
+                        else if(inventoryAdmin.equals(id) && !(inventoryAdmin.passwordValid(password))) {
                         System.out.println("Wrong Password! ");
                     }
                     else
@@ -289,7 +301,7 @@ public class Main {
             // 1 = Manager, 2 = Inventory Admin
             case 1:
                 do {
-                System.out.println("1. Restock inventory");         //order item @ purchase order
+                System.out.println("1. Order Stocks ");         //order item @ purchase order
                 System.out.println("2. Current Stock Report");
                 System.out.println("3. Display all supplier");      //Not sure put here or wat, people incharge supplier can modify this
                 System.out.println("4. All staff details");
@@ -308,19 +320,22 @@ public class Main {
                 
             case 2:
                 do {
-                    System.out.println("1. Restock inventory");
-                    System.out.println("2. Purchase order status");
-                    System.out.println("3. Return to last page");
+                    System.out.println("1. Order Stocks ");
+                    System.out.println("2. Purchase Order status/data");
+                    System.out.println("3. Update Purchase Order");
+                    System.out.println("4. Delete Purchase Order");
+                    System.out.println("5. Update Orders");
+                    System.out.println("6. Display Orders");
+                    System.out.println("7. Return to last page");
                     System.out.print("Choice > ");
                     decision = scan.nextInt();
-                    if (decision < 1 || decision > 3) {
+                    if (decision < 1 || decision > 7) {
                         System.out.println("");
                         System.out.println("Invalid input. Try again.");
                         System.out.println("");
                     }
                     return decision;
-                } while ((decision < 1 || decision > 3) || decision != 3);
-                
+                } while ((decision < 1 || decision > 7) || decision != 7);
             default:
                 break;
         }
