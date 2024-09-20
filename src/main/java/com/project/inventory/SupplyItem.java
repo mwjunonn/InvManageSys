@@ -68,6 +68,7 @@ public class SupplyItem {
     }
     
     
+    
     public String toString(){
         return String.format("| %-11s | %-10s | %-16.2f | %-12.2f |\n", supplierId, itemId, shippingFee, cost);
     }
@@ -163,21 +164,7 @@ public class SupplyItem {
         }
         return false;
     }
-
-    public boolean isItemExists(String itemId) {
-        Database db1 = new Database("inventory");
-        String[] columns = {"item_id"};
-        Object[][] condition = {{"item_id", itemId}};
-
-        if (db1.readTable(columns, condition)) {
-            ArrayList<ArrayList<Object>> result = db1.getObjResult();
-           
-            return result != null && result.size() > 1;
-        }
-        return false;
-    }
-      
-    
+  
     public boolean writeData(SupplyItem supplyItem){
            
             double shippingFee = supplyItem.getShippingFee();

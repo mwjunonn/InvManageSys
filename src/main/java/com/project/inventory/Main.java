@@ -1008,11 +1008,11 @@ public abstract class Main {
         SupplyItem supplyItemManager = new SupplyItem();
         String id ="", name, address, email;
         String type = "";
-        String itemID;
-        double import_duty = 0.00, shipping_fee = 0.00, cost = 0.00;
+        double import_duty = 0.00, shipping_fee = 0.00;
         int options = 0, exit = 1;
         boolean supplierInfoValid;
         int itemIndex;
+        Inventory inventory = Inventory.getInstance();
 
 
         if(Supplier.numSupplier < 100){
@@ -1081,58 +1081,57 @@ public abstract class Main {
                         ((ForeignSupplier)tempSupplier).setSupplierType();
                     }
 
-
-
-
-
                     //choose item and add item
                     supplierManager.addSupplier(tempSupplier);
 
                     do{
-                        System.out.print("Please Enter The Number For The Product That The Supplier Will Be Providing: ");
-                        itemIndex = Integer.parseInt(scan.nextLine());
+                        System.out.println("Please Select Item...");
+                        itemIndex = selectInventory();
+                        if(itemIndex != -1){
+                            Item item = inventory.getItem(itemIndex);
+                            //System.out.print("Please Enter The Number For The Product That The Supplier Will Be Providing: ");
+                            //itemIndex = Integer.parseInt(scan.nextLine());
 
-                        itemID = String.format("I%04d", itemIndex);
+                            //itemID = String.format("I%04d", itemIndex);
 
-                        System.out.println("Please Enter The Information: ");
-                        System.out.println("Item ID: " + itemID);
-                        try{
-                            System.out.print("Shipping Fee: RM");
-                            shipping_fee = Double.parseDouble(scan.nextLine());
-                        }catch(NumberFormatException ex){
-                            System.out.println("Error: Cannot Read The Shipping Fee!");
-                        }
-                        
-                        try{
-                            System.out.print("Cost: RM");
-                            cost = Double.parseDouble(scan.nextLine());
-                        }catch(NumberFormatException ex){
-                            System.out.println("Error: Cannot Read The Cost !");
-                        }
+                            System.out.println("Please Enter The Information: ");
+                            System.out.println("Item ID: " + item.getItemId());
+                            System.out.println("Cost: RM" + item.getLatestPrice());
+
+                            try{
+                                System.out.print("Shipping Fee: RM");
+                                shipping_fee = Double.parseDouble(scan.nextLine());
+                            }catch(NumberFormatException ex){
+                                System.out.println("Error: Cannot Read The Shipping Fee!");
+                            }
+
+                            
+                                
 
 
-                        supplyItemManager.setSupplierId(id);
-                        supplyItemManager.setItemId(itemID);
-                        supplyItemManager.setShippingFee(shipping_fee);
-                        supplyItemManager.setCost(cost);
+                            supplyItemManager.setSupplierId(id);
+                            supplyItemManager.setItemId(item.getItemId());
+                            supplyItemManager.setShippingFee(shipping_fee);
+                            supplyItemManager.setCost(item.getLatestPrice());
 
-                        if(supplyItemManager.writeData(supplyItemManager)){
-                            System.out.println("Data Has Added.");        
-                            System.out.println();
-                            do{
-                                try{
-                                    System.out.println("Do You Want To Add Another Item? ");
-                                    System.out.println("1. Yes");
-                                    System.out.println("2. No");
-                                    System.out.print("Enter Your Choice: ");
-                                    options = Integer.parseInt(scan.nextLine());
-                                }catch(NumberFormatException ex){
-                                    System.out.println("Error: Your Input Choice Should Be An Integer!");
-                                }
+                            if(supplyItemManager.writeData(supplyItemManager)){
+                                System.out.println("Data Has Added.");        
+                                System.out.println();
+                                do{
+                                    try{
+                                        System.out.println("Do You Want To Add Another Item? ");
+                                        System.out.println("1. Yes");
+                                        System.out.println("2. No");
+                                        System.out.print("Enter Your Choice: ");
+                                        options = Integer.parseInt(scan.nextLine());
+                                    }catch(NumberFormatException ex){
+                                        System.out.println("Error: Your Input Choice Should Be An Integer!");
+                                    }
 
-                                if(options != 1 && options !=2)
-                                    System.out.println("Invalid Options! Please Try Again");
-                            }while(options != 1 && options != 2);
+                                    if(options != 1 && options !=2)
+                                        System.out.println("Invalid Options! Please Try Again");
+                                }while(options != 1 && options != 2);
+                            }
                         }
 
 
@@ -1190,7 +1189,6 @@ public abstract class Main {
     }
 
     private static void editSupplierInfo(Supplier supplierManager){
-        int supplierIndex = 0;
         int options = 0, options2 = 0, exit = 0;
         String temp, columnName, id;
         ForeignSupplier foreignSupplier;
@@ -1201,9 +1199,8 @@ public abstract class Main {
         if(Supplier.numSupplier  != 0){
 
             do{
-                System.out.print("Please Enter The Supplier's ID to Modify(EG: S0001 - > 1): ");
-                supplierIndex = Integer.parseInt(scan.nextLine());
-                id = String.format("S%04d", supplierIndex);
+                System.out.print("Please Enter The Supplier's ID to Modify: ");
+                id = scan.nextLine();
                 
 
 
@@ -1260,7 +1257,6 @@ public abstract class Main {
                                             switch(options){
                                                 case 1:
                                                     columnName = "supplier_name";
-                                                    id = String.format("S%04d", supplierIndex);
                                                     supplierManager.modifySupplier(columnName, id, temp);
                                                     exit = 1;
                                                     break;
@@ -1313,7 +1309,6 @@ public abstract class Main {
                                             switch(options){
                                                 case 1:
                                                     columnName = "supplier_address";
-                                                    id = String.format("S%04d", supplierIndex);
                                                     supplierManager.modifySupplier(columnName, id, temp);
                                                     exit = 1;
                                                     break;
@@ -1366,7 +1361,6 @@ public abstract class Main {
                                             switch(options){
                                                 case 1:
                                                     columnName = "email_address";
-                                                    id = String.format("S%04d", supplierIndex);
                                                     supplierManager.modifySupplier(columnName, id, temp);
                                                     exit = 1;
                                                     break;
@@ -1434,7 +1428,6 @@ public abstract class Main {
     }
 
     private static void deleteSupplierDetails(Supplier supplierManager){
-        int supplierIndex;
         int options = 0, exit = 0;
         String id;
         SupplyItem supplyMainManager = new SupplyItem();
@@ -1444,9 +1437,8 @@ public abstract class Main {
         if(Supplier.numSupplier != 0){
             do{
                 displaySupplierInfo(supplierManager);
-                System.out.print("Please Enter The Supplier's ID to Delete(EG: S0001 - > 1): ");
-                supplierIndex = Integer.parseInt(scan.nextLine());
-                id = String.format("S%04d", supplierIndex);
+                System.out.print("Please Enter The Supplier's ID to Delete): ");
+                id = scan.nextLine();
                 if(supplierManager.isSupplierExists(id)){
                     do{
                         Supplier supplier = supplierManager.getAllSupplierInfo(id);
@@ -1465,7 +1457,6 @@ public abstract class Main {
                         }
                         switch(options){
                             case 1:
-                                id = String.format("S%04d", supplierIndex);
                                 supplyMainManager.deleteSupplyItem(id);
                                 supplierManager.deleteSupplier(id);
                                 Supplier.numSupplier--;
@@ -1544,35 +1535,30 @@ public abstract class Main {
     }
     
     private static void editSupplyItem(){
-        String supplierId, itemId, shippingFee, cost;
+        String supplierId, shippingFee;
         SupplyItem supplyItemManager = new SupplyItem();
         SupplyItem supplyItemInfo;
         int options = 0;
         double newValue;
-        int supplierIndex = 0, itemIDIndex = 0;
+        int itemIndex;
+        Inventory inventory = Inventory.getInstance();
 
         if(SupplyItem.supplyItemNum != 0){
         
-            try{
-                System.out.print("Please Enter The Supplier's ID (EG: S0001 - > 1): ");
-                supplierIndex = Integer.parseInt(scan.nextLine());
-            }catch(NumberFormatException ex){
-                System.out.println("You Can Only Enter Integer!");
-            }
-            try{
-                System.out.print("Please Enter The Item's ID (EG: I0001 - > 1): ");
-                itemIDIndex= Integer.parseInt(scan.nextLine());
-            }catch(NumberFormatException ex){
-                System.out.println("You Can Only Enter Integer!");
-            }  
-        
-        
-              
-                supplierId = String.format("S%04d", supplierIndex);
-                itemId =  String.format("I%04d", itemIDIndex);
+            
+            System.out.print("Please Enter The Supplier's ID (EG: S0001 - > 1): ");
+            supplierId = scan.nextLine();
+            
+            itemIndex = selectInventory();
+            
+            if(itemIndex!= -1){
+    
+                Item item = inventory.getItem(itemIndex);
+                
+             
                          
-                    if(supplyItemManager.isSupplierExists(supplierId) && supplyItemManager.isItemExists(itemId)){
-                        supplyItemInfo = supplyItemManager.getAllSupplyItem(supplierId, itemId);
+                    if(supplyItemManager.isSupplierExists(supplierId)){
+                        supplyItemInfo = supplyItemManager.getAllSupplyItem(supplierId, item.getItemId());
                         if(supplyItemInfo != null){
                             do{
                                 System.out.println("--------------------------------------------------------------");
@@ -1584,7 +1570,7 @@ public abstract class Main {
                                 try{
                                     System.out.println("Select The Data That You Want To Modify");
                                     System.out.println("1. Shipping Fee");
-                                    System.out.println("2. Cost");
+                                    System.out.println("2. Exit");
                                     System.out.print("Enter Your Choice: ");
                                     options = Integer.parseInt(scan.nextLine());
                                 }catch(NumberFormatException ex){
@@ -1613,7 +1599,7 @@ public abstract class Main {
                                                 }
                                                 switch(options){
                                                     case 1: 
-                                                        supplyItemManager.updateData("shipping_fee", supplierId, itemId, shippingFee);
+                                                        supplyItemManager.updateData("shipping_fee", supplierId, item.getItemId(), shippingFee);
                                                         break;
                                                     case 2:
                                                         System.out.println("Modification has been canceled. No changes were made.");
@@ -1633,45 +1619,7 @@ public abstract class Main {
 
                                         break;
                                     case 2:
-                                        System.out.print("Enter New Cost: RM");
-                                        newValue = Double.parseDouble(scan.nextLine());
-                                        if(newValue > 0 && newValue < 1000){
-                                            cost = String.valueOf(newValue);
-
-                                            do{
-                                                System.out.println("-------------------------------");
-                                                System.out.printf("| %-12s | %-12s |\n", "Old Data", "New Data");
-                                                System.out.println("-------------------------------");
-                                                System.out.printf("| %-12.2f | %-12.2f |\n", supplyItemInfo.getCost(), newValue);
-                                                System.out.println("-------------------------------");
-                                                try{
-                                                    System.out.println("Do You Confirm The Modification?");
-                                                    System.out.println("1. Yes");
-                                                    System.out.println("2. No");
-                                                    System.out.print("Enter Your Choice: ");
-                                                    options = Integer.parseInt(scan.nextLine());
-                                                }catch(NumberFormatException ex){
-                                                       System.out.println("Error: Your Input Choice Should Be An Integer!");
-                                                }
-                                                switch(options){
-                                                    case 1: 
-                                                        supplyItemManager.updateData("cost", supplierId, itemId, cost);
-                                                        break;
-                                                    case 2:
-                                                        System.out.println("Modification has been canceled. No changes were made.");
-                                                        System.out.println("You will now be exited from this function.");
-                                                        System.out.println("To try again, please reselect the function from the menu.");
-                                                        break;
-                                                    default:
-                                                        System.out.println("Invalid options! Please Try Again...");
-                                                        break;
-                                                }
-                                            }while(options != 1 && options != 2);
-                                        }else{
-                                            System.out.println("Please ensure the shipping fee is within the valid range of RM0 to RM999.");
-                                            System.out.println("You will now be exited from this function.");
-                                            System.out.println("To try again, please reselect the function from the menu.");
-                                        }
+                                        System.out.println("Exit The Function...");
                                         break;
                                     default:
                                         System.out.println("Invalid Options! Please Try Again...");
@@ -1689,126 +1637,125 @@ public abstract class Main {
                         System.out.println("You will now be exited from this function.");
                         System.out.println("To try again, please reselect the function from the menu.");
                      }
-        }else{
-            System.out.println("There Is No Supply Item Record...");
         }
                     
+        }else{
+           System.out.println("There Is No Supply Item Record...");
+        }
     }
     
     private static void createSupplyItem(SupplyItem supplyItemManager){
-        int supplierIndex = 0, itemIDIndex = 0;
-        double shippingFee, cost;
-        String supplierId, itemId;
-        
-        try{
-            System.out.print("Please Enter The Supplier's ID (EG: S0001 - > 1): ");
-            supplierIndex = Integer.parseInt(scan.nextLine());
-        }catch(NumberFormatException ex){
-            System.out.println("You Can Only Enter Integer!");
-        }
-        try{
-            System.out.print("Please Enter The Item's ID (EG: I0001 - > 1): ");
-            itemIDIndex= Integer.parseInt(scan.nextLine());
-        }catch(NumberFormatException ex){
-            System.out.println("You Can Only Enter Integer!");
-        }  
-    
+        int itemIndex;
+        double shippingFee;
+        String supplierId;
+        Inventory inventory = Inventory.getInstance();
+
         
         
-        supplierId = String.format("S%04d", supplierIndex);
-        itemId =  String.format("I%04d", itemIDIndex);
-                
-        if(supplyItemManager.isSupplierExists(supplierId)&& supplyItemManager.isItemExists(itemId)){
-                    
-            System.out.println("Information");
-            System.out.println("-----------");
-            System.out.print("Shipping Fee: RM");
-            shippingFee = Double.parseDouble(scan.nextLine());
-            System.out.print("Cost: RM");
-            cost = Double.parseDouble(scan.nextLine());            
-                        
-            if(shippingFee > 0 && shippingFee <1000 && cost > 0 && cost <1000){
-                supplyItemManager.setSupplierId(supplierId);
-                supplyItemManager.setItemId(itemId);
-                supplyItemManager.setShippingFee(shippingFee);
-                supplyItemManager.setCost(cost);
-                if(supplyItemManager.writeData(supplyItemManager)){
-                    System.out.println("Data Added Successfully"); 
+        System.out.print("Please Enter The Supplier's ID : ");
+        supplierId = scan.nextLine();
+        
+        
+        itemIndex = selectInventory();
+        
+        if(itemIndex!= -1){
+        
+            Item item = inventory.getItem(itemIndex);
+
+            if(supplyItemManager.isSupplierExists(supplierId)){
+
+                System.out.println("Information");
+                System.out.println("-----------");
+                System.out.println("Cost: RM" + item.getLatestPrice());
+                System.out.print("Shipping Fee: RM");
+                shippingFee = Double.parseDouble(scan.nextLine());
+                      
+                if(shippingFee > 0 && shippingFee <1000){
+                    supplyItemManager.setSupplierId(supplierId);
+                    supplyItemManager.setItemId(item.getItemId());
+                    supplyItemManager.setShippingFee(shippingFee);
+                    supplyItemManager.setCost(item.getLatestPrice());
+                    if(supplyItemManager.writeData(supplyItemManager)){
+                        System.out.println("Data Added Successfully"); 
+                    }
                 }
-            }
-            else{
-                System.out.println("Please ensure the shipping fee and cost are within the valid range of RM0 to RM999.");
+                else{
+                    System.out.println("Please ensure the shipping fee is within the valid range of RM0 to RM999.");
+                    System.out.println("You will now be exited from this function.");
+                    System.out.println("To try again, please reselect the function from the menu.");
+                }
+
+            }else{
+                System.out.println("No Matching records found for Supplier's ID or Item's ID!");
                 System.out.println("You will now be exited from this function.");
                 System.out.println("To try again, please reselect the function from the menu.");
-            }
-           
-        }else{
-            System.out.println("No Matching records found for Supplier's ID or Item's ID!");
-            System.out.println("You will now be exited from this function.");
-            System.out.println("To try again, please reselect the function from the menu.");
-        }      
+            }   
+        }
         
      
     } 
     
     private static void deleteSupplyItem(SupplyItem supplyItemManager){
-        int supplierIndex = 0, itemIDIndex = 0, options = 0;
-        String supplierId, itemId;
+        int itemIndex = 0, options = 0;
+        String supplierId;
         SupplyItem supplyItem;
+        Inventory inventory = Inventory.getInstance();
+
         
         if(SupplyItem.supplyItemNum !=0 ){
-            try{
-                System.out.print("Please Enter The Supplier's ID (EG: S0001 - > 1): ");
-                supplierIndex = Integer.parseInt(scan.nextLine());
-            }catch(NumberFormatException ex){
-                System.out.println("You Can Only Enter Integer!");
-            }
-            try{
-                System.out.print("Please Enter The Item's ID (EG: I0001 - > 1): ");
-                itemIDIndex= Integer.parseInt(scan.nextLine());
-            }catch(NumberFormatException ex){
-                System.out.println("You Can Only Enter Integer!");
-            }  
-        
-        
-        
-            supplierId = String.format("S%04d", supplierIndex);
-            itemId =  String.format("I%04d", itemIDIndex);
+            System.out.print("Please Enter The Supplier's ID : ");
+            supplierId = scan.nextLine();
+            System.out.println("Please Select Item...");
+            itemIndex = selectInventory();
+            
+            if(itemIndex != -1){
+                Item item = inventory.getItem(itemIndex);
 
-            if(supplyItemManager.isSupplierExists(supplierId) && supplyItemManager.isItemExists(itemId)){
-                do{
-                    supplyItem = supplyItemManager.getAllSupplyItem(supplierId, itemId);
-                    System.out.println("--------------------------------------------------------------");
-                    System.out.printf("| %-11s | %-10s | %-16s | %-12s |\n", "Supplier ID", "Item ID", "Shipping Fee(RM)", "Cost(RM)");
-                    System.out.println("--------------------------------------------------------------");
-                    System.out.printf(supplyItem.toString());
-                    System.out.println("--------------------------------------------------------------");
-                    try{
-                        System.out.println("Do You Confirm To Delete The Record?");
-                        System.out.println("1. Yes");
-                        System.out.println("2. No");
-                        System.out.print("Enter Your Choice: ");
-                        options = Integer.parseInt(scan.nextLine());
-                    }catch(NumberFormatException ex){
-                        System.out.println("Error: Your Input Choice Should Be An Integer!");
-                    }
-                    switch(options){
-                        case 1:
-                            supplyItemManager.deleteSupplyItem(supplierId, itemId);
-                            SupplyItem.supplyItemNum--;
-                            break;
-                        case 2:
-                            break;
-                        default: 
-                            System.out.println("Invalid Option! Please Try Again");
-                            break;
-                    }
-                }while(options!= 1 && options!=2);
-                           
-            }else{
-                System.out.println("No Matching records found for Supplier's ID or Item's ID!");
-                System.out.println("You will now be exited from this function.");
-                System.out.println("To try again, please reselect the function from the menu.");
+                if(supplyItemManager.isSupplierExists(supplierId)){
+                    do{
+                        supplyItem = supplyItemManager.getAllSupplyItem(supplierId, item.getItemId());
+                        if(supplyItem != null){
+
+
+                            System.out.println("--------------------------------------------------------------");
+                            System.out.printf("| %-11s | %-10s | %-16s | %-12s |\n", "Supplier ID", "Item ID", "Shipping Fee(RM)", "Cost(RM)");
+                            System.out.println("--------------------------------------------------------------");
+                            System.out.printf(supplyItem.toString());
+                            System.out.println("--------------------------------------------------------------");
+                            try{
+                                System.out.println("Do You Confirm To Delete The Record?");
+                                System.out.println("1. Yes");
+                                System.out.println("2. No");
+                                System.out.print("Enter Your Choice: ");
+                                options = Integer.parseInt(scan.nextLine());
+                            }catch(NumberFormatException ex){
+                                System.out.println("Error: Your Input Choice Should Be An Integer!");
+                            }
+                            switch(options){
+                                case 1:
+                                    supplyItemManager.deleteSupplyItem(supplierId, item.getItemId());
+                                    SupplyItem.supplyItemNum--;
+                                    break;
+                                case 2:
+                                    break;
+                                default: 
+                                    System.out.println("Invalid Option! Please Try Again");
+                                    break;
+                            }
+                        }
+                        else{
+                            System.out.println("No Matching Records Found ");
+                            System.out.println("You will be now exited from this function.");
+                            System.out.println("To Try Again, please reselect the function from the menu.");
+                            options = 2;
+                        }
+                    }while(options!= 1 && options!=2);
+
+                }else{
+                    System.out.println("No Matching records found for Supplier's ID or Item's ID!");
+                    System.out.println("You will now be exited from this function.");
+                    System.out.println("To try again, please reselect the function from the menu.");
+                }
             }
         }
         else{
