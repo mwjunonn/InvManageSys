@@ -5,6 +5,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Vector;
 
@@ -17,6 +18,7 @@ public class InventoryUI extends JFrame {
     int inventorySelectedIndex = -1;
     JDialog dialog = new JDialog(this, Dialog.ModalityType.DOCUMENT_MODAL);
     ArrayList<Object> items;
+    HashMap<Integer, Integer> indexOfItem;
 
     public InventoryUI() {
         super("Inventory Management System");
@@ -93,9 +95,13 @@ public class InventoryUI extends JFrame {
     private ArrayList<Object> searchResult(String search) {
         ArrayList<Object> rowSearched = new ArrayList<>();
         rowSearched.add(items.getFirst());
+        indexOfItem.clear();
+        int j = 0;
         for (int i = 1; i < items.size(); i++) {
             if (((Item) items.get(i)).getItemName().toLowerCase().contains(search.toLowerCase())) {
                 rowSearched.add(items.get(i));
+                indexOfItem.put(j, i - 1);
+                j++;
             }
         }
         return rowSearched;
@@ -105,11 +111,16 @@ public class InventoryUI extends JFrame {
         JScrollPane inventory_list_scroll;
         updateTableModel(items);
         inventory_list = new JTable(model);
+        indexOfItem = new HashMap<>();
+        for (int i = 0; i < items.size()-1; i++) {
+            indexOfItem.put(i, i);
+        }
         inventory_list.setFont(new Font("MiSans", Font.PLAIN, 12));
         inventory_list.setRowHeight(32);
         inventory_list.addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {
-                inventorySelectedIndex = inventory_list.getSelectedRow();
+                int rowSelected = inventory_list.getSelectedRow();
+                inventorySelectedIndex = indexOfItem.get(rowSelected);
                 dialog.setVisible(false);
                 dialog.dispose();
             }
