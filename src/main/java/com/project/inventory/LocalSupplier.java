@@ -12,6 +12,11 @@ public class LocalSupplier extends Supplier {
         super(supplierId, supplierName, supplierAddress, supplierEmail);
     }
     
+     public LocalSupplier(String supplierId, String supplierName, String supplierAddress, String supplierEmail, String supplierType, double importDuty){
+        super(supplierId, supplierName, supplierAddress, supplierEmail);
+        this.supplierType = supplierType;
+        this.importDuty = importDuty;
+    }
     
      public double getImportDuty(){
         return importDuty;
@@ -33,9 +38,10 @@ public class LocalSupplier extends Supplier {
 
     
      
-     @Override
-    public String toString(){
-        return super.toString() + String.format("\nSupplier Type: %s", "Local");
+    @Override
+    public String toString() {
+        return super.toString() + String.format(" %-13s | %-15.2f |",
+             supplierType, importDuty);
     }
     
     

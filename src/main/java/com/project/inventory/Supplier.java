@@ -4,6 +4,7 @@
  */
 package com.project.inventory;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -69,65 +70,91 @@ public class Supplier {
   
     //methods
     @Override
-    public String toString(){
-        return "Supplier Name: " + supplierName + "Supplier Address: " + supplierAddress + "Supplier Email:" + supplierEmail;
+    public String toString() {
+        return String.format("| %-11s | %-25s | %-78s | %-30s |",
+            supplierId, supplierName, supplierAddress, supplierEmail);
     }
 
-    public String[][] getAllSupplierInfo(){
+    public ArrayList<Supplier> getAllSupplierInfo() {
         String[] columns = {"supplier_id", "supplier_name", "supplier_address", "email_address", "supplier_type", "import_duty"};
-        String[][] supplierInfo = new String[6][];
+        ArrayList<Supplier> suppliers = new ArrayList<>();
+        Supplier supplier;
+        double importDuty = 0.0;
 
-        for(int i = 0; i < columns.length; i++){
-            String[] columnName = {columns[i]};
+        db.readTable(columns); 
+        ArrayList<String> resultList = db.getResult();
 
-            db.readTable(columnName);
-
-            ArrayList<String> resultList = db.getResult();
-
-            supplierInfo[i] = new String[resultList.size()];
-
-            for(int j = 0; j < resultList.size(); j++){
-                supplierInfo[i][j] = resultList.get(j).replaceAll(Database.delimiter, "");
+        for (int j = 1; j < resultList.size(); j++) { 
+            String[] supplierData = resultList.get(j).split(Database.delimiter);
+           
+            if (supplierData.length == columns.length) {
+                            
+                if (!supplierData[5].isEmpty()) {
+                    try {
+                        importDuty = Double.parseDouble(supplierData[5]);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Error parsing import duty for supplier: " + supplierId);
+                    }
+                }
+              
+                if (supplierData[4].equals("Local")) {
+                    supplier = new LocalSupplier(supplierData[0], supplierData[1], supplierData[2], supplierData[3], supplierData[4], importDuty);
+                } else {
+                    supplier = new ForeignSupplier(supplierData[0], supplierData[1], supplierData[2], supplierData[3], supplierData[4], importDuty);
+                }
+                suppliers.add(supplier);
+            } else {
+                System.out.println("Error: Incorrect data format in row " + (j + 1));
             }
-
-            if(i == 0)
-                numSupplier = resultList.size();
-
-
-        }
-        String supplierInfo2[][] = new String[supplierInfo[0].length][columns.length];
-
-        for (int i = 0; i < supplierInfo[0].length; i++) {
-           for (int j = 0; j < columns.length; j++) {
-            supplierInfo2[i][j] = supplierInfo[j][i];
-            }
         }
 
-        return supplierInfo2;
+        numSupplier = resultList.size() - 1; 
+        return suppliers;
     }
+    
+    public boolean isSupplierExists(String supplierId) {
+        
 
-    public String[][] getAllSupplierInfo(String supplierId) {
-        String[] columns = {"supplier_id", "supplier_name", "supplier_address", "email_address", "supplier_type", "import_duty"};
+        String[] columns = {"supplier_id"};
         Object[][] condition = {{"supplier_id", supplierId}};
 
+        if (db.readTable(columns, condition, "")) {
+            ArrayList<ArrayList<Object>> result = db.getObjResult();
+            return result != null && result.size() > 1;
+        }
+        return false;
+    }
+
+    public Supplier getAllSupplierInfo(String supplierId) {
+        String[] columns = {"supplier_id", "supplier_name", "supplier_address", "email_address", "supplier_type", "import_duty"};
+        Object[][] condition = {{"supplier_id", supplierId}};
+        double importDuty = 0.00;
 
         db.readTable(columns, condition);
 
+        ArrayList<ArrayList<Object>> resultList = db.getObjResult();
 
-        ArrayList<ArrayList<Object>> result = db.getObjResult();
+        if(resultList.size() <= 1){
+          
+            return null;
+        }
 
+        ArrayList<Object> supplierData = resultList.get(1);
 
-        String[][] supplierInfo = new String[result.size()][columns.length];
+        
+        try{
+            importDuty = Double.parseDouble(supplierData.get(5).toString());
+        }catch(NumberFormatException ex){
+            System.out.println("Error: Parsing Import Duty");
+        }
 
-        for (int i = 0; i < result.size(); i++) {
-            for (int j = 0; j < result.get(i).size(); j++) {
-                supplierInfo[i][j] = result.get(i).get(j).toString();
-            }
+        if ("Local".equalsIgnoreCase(supplierData.get(4).toString())) {
+            return new LocalSupplier(supplierData.get(0).toString(), supplierData.get(1).toString(), supplierData.get(2).toString(), supplierData.get(3).toString(), supplierData.get(4).toString(), importDuty);
+        } else {
+            return new ForeignSupplier(supplierData.get(0).toString(), supplierData.get(1).toString(), supplierData.get(2).toString(), supplierData.get(3).toString(), supplierData.get(4).toString(), importDuty);
+        }
     }
-
-    return supplierInfo;
-    }
-
+    
     public void addSupplier(Supplier supplier){
 
         String importDutyStr, type;
