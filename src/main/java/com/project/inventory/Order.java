@@ -28,10 +28,11 @@ public class Order {
         this.quantity = quantity;
         this.supplierId = supplierId;
         this.totalCost = totalCost;
+        createOrder();
     }
 
     // Create a new order record
-    public boolean createOrder(String itemId, String orderNo, int quantity, String supplierId, double totalCost) {
+    public boolean createOrder() {
         String[] columns ={"item_id", "order_no", "quantity", "supplier_id", "total_cost"}; 
         Object[] values = {itemId, orderNo, quantity, supplierId, totalCost};
         if(!db.insertTable(columns, values)){
@@ -112,7 +113,7 @@ public class Order {
 
         // If only one item is associated with the order, do not delete
         if (result.size() <= 2) { 
-            System.out.println("Order No " + orderNo + " contains only one item. Deletion not allowed.");
+            System.out.println("Order No " + orderNo + " contains only one item or Order No does not exist. Deletion not allowed!");
             return false;
         }
 
