@@ -1,4 +1,7 @@
-package com.project.inventory;
+package com.project.inventory.ui;
+
+import com.project.inventory.application.*;
+import com.project.inventory.dao.Database;
 
 import java.util.*;
 import java.text.ParseException;
@@ -18,25 +21,19 @@ public abstract class Main {
     
     public static void mainMenu(){
         int choice = 0;
-
         do{
-            try{
                 System.out.println("[Welcome to MIXUE Inventory System]");
                 System.out.println("-----------------------------------");
-                System.out.println("1. Login");
-                System.out.println("2. Register");
-                System.out.println("3. Exit");
-                System.out.print("Your Choice: ");
-                choice = Integer.parseInt(scan.nextLine());
-            }catch(NumberFormatException ex){
-                System.out.println("Please enter integer only.");
-            }
+                choice = getMenuInput(new String[]{
+                        "Login",
+                        "Register",
+                        "Exit"
+                });
             System.out.println();
             switch(choice){
                 case 1:
-                    if (loginMenu()) {
+                    if (loginMenu())
                         menu();
-                    }
                     break;
                 case 2:
                     registerMenu();
@@ -52,36 +49,28 @@ public abstract class Main {
 
     public static boolean loginMenu() {
         int choice = 0;
-        int decision;
         String id = "";
         String password = "";
         //If found out how to clear screen, enable this two
         //System.out.println("[Welcome to MIXUE Inventory System]");
         //System.out.println("-----------------------------------");
         do {
-            try {
                 System.out.println("Login as: ");
-                System.out.println("1. Manager");
-                System.out.println("2. Inventory Admin");
-                System.out.println("3. Return to last page");
-                System.out.print("Your choice: ");
-                choice = Integer.parseInt(scan.nextLine());
-            } catch (NumberFormatException ex) {
-                System.out.println("Please enter integer only.");
-            }
+                choice = getMenuInput(new String[]{
+                        "Manager",
+                        "Inventory Admin",
+                        "Return to last page"
+                });
             switch (choice) {
                 case 1:
-                    user = new Manager();
-                    System.out.println("Login as Manager");
-                    System.out.print("ID: ");
-                    id = scan.nextLine();
-                    System.out.print("Password: ");
-                    password = scan.nextLine();
-                    System.out.println();
-                    break;
                 case 2:
-                    user = new InventoryAdmin();
-                    System.out.println("Login as Inventory Admin");
+                    if(choice == 1) {
+                        user = new Manager();// Polymorphism
+                        System.out.println("Login as Manager");
+                    }else{
+                        user = new InventoryAdmin(); // Polymorphism
+                        System.out.println("Login as Inventory Admin");
+                    }
                     System.out.print("ID: ");
                     id = scan.nextLine();
                     System.out.print("Password: ");
@@ -110,15 +99,17 @@ public abstract class Main {
 
     public static void menu() {
         int decision;
+        Thread.startVirtualThread(Inventory.getInstance());
         do {
             decision = permissionMenu(user.permission());
-            if (user.permission().equals(User.Permission.FULL_CONTROL)) {
+            if (user.permission().equals(User.Permission.FULL_CONTROL)) { //Manager
                 Manager manager = (Manager) user;
                 switch (decision) {
                     case 1:     //Restock Inventory
                         inventoryMenu();
                         break;
                     case 2:     //Current Stock Report
+                        selectInventory();
                         break;
                     case 3:     //Supplier Menu
                         supplierMenu();
@@ -143,7 +134,7 @@ public abstract class Main {
                     default:
                         break;
                 }
-            } else if (user.permission().equals(User.Permission.ADMIN)) {
+            } else if (user.permission().equals(User.Permission.ADMIN)) { //Admin
                 switch (decision) {
                     case 1:     //Restock inventory
                         generatePurchaseOrder();
@@ -292,56 +283,33 @@ public abstract class Main {
         }
             
     }
-    
-    public static int permissionMenu(User.Permission permission){
+
+    public static int permissionMenu(User.Permission permission) {
         int decision = 0;
-        switch (permission){
+        switch (permission) {
             // 1 = Manager, 2 = Inventory Admin
             case FULL_CONTROL:
-                do {
-                    try{
-                        System.out.println("1. Inventory");         //order item @ purchase order
-                        System.out.println("2. Current Stock Report");
-                        System.out.println("3. Supplier Menu");    
-                        System.out.println("4. All staff details");
-                        System.out.println("5. Modify staff details");
-                        System.out.println("6. Delete staff");
-                        System.out.println("7. Return to last page");
-                        System.out.print("Choice > ");
-                        decision = Integer.parseInt(scan.nextLine());
-                    }catch(NumberFormatException ex){
-                        System.out.println("Please enter integer only.");
-                    }
-                    if (decision < 1 || decision > 7) {
-                        System.out.println();
-                        System.out.println("Invalid input. Try again.");
-                        System.out.println();
-                    }
-                    return decision;
-                } while (decision < 1 || decision > 7);
+                decision = getMenuInput(new String[]{
+                        "Inventory", //order item @ purchase order
+                        "Current stock report",
+                        "Supplier Menu",
+                        "All staff details",
+                        "Modify staff details",
+                        "Delete staff",
+                        "Return to last page"
+                });
+                return decision;
             case ADMIN:
-                do {
-                    try{
-                        System.out.println("1. Order Items");
-                        System.out.println("2. Purchase Order Menu");
-                        System.out.println("3. Order Menu");
-                        System.out.println("4. Return to last page.");
-                        System.out.print("Choice > ");
-                        decision = Integer.parseInt(scan.nextLine());
-                    }catch(NumberFormatException ex){
-                        System.out.println("Please enter integer only.");
-                    }
-                    if (decision < 1 || decision > 4) {
-                        System.out.println();
-                        System.out.println("Invalid input. Try again.");
-                        System.out.println();
-                    }
-                    return decision;
-                } while (decision < 1 || decision > 4);
+                decision = getMenuInput(new String[]{
+                        "Order items", //order item @ purchase order
+                        "Purchase Order Menu",
+                        "Order Menu",
+                        "Return to last page"
+                });
+                return decision;
             default:
-                break;
+                throw new IllegalArgumentException("The permission haven't setup yet");
         }
-        return decision;
     }
     
     public static void modifyUser(){
@@ -565,7 +533,7 @@ public abstract class Main {
 
     private static void updateItem(int index) {
         boolean validation;
-        String strInput = "";
+        String strInput;
         Inventory inventory = Inventory.getInstance();
         Item item = inventory.getItem(index);
         String[] itemDataName = new String[]{
@@ -656,8 +624,7 @@ public abstract class Main {
                 if(adjustQuantity != 0.0)
                     inventory.getItem(index).setQuantity(adjustQuantity);
             }
-            inventory.getItem(index).setItemUnit(Double.parseDouble(subStr[0]), subStr[1]);
-            return true;
+            return inventory.getItem(index).setItemUnit(Double.parseDouble(subStr[0]), subStr[1]);
     }
 
     public static double promptAdjustQuantity(int index, double per_unit) {
@@ -705,9 +672,10 @@ public abstract class Main {
 
     public static int selectInventory(){
         Inventory inventory = Inventory.getInstance();
-        InventoryUI inventoryUI = new InventoryUI(inventory.getItemListWithColumns());
-        inventoryUI.inventoryListGui();
-        return inventoryUI.getItemSelectedIndex();
+        InventoryUIController controller = new InventoryUIController(inventory.getItemListWithColumns());
+        InventoryUI ui = new InventoryUI(controller);
+        ui.showInventoryListGui();
+        return controller.getInventorySelectedIndex();
     }
 
     private static void showItemDetails(Item item){
@@ -808,13 +776,17 @@ public abstract class Main {
         }
     }
 
+    /**
+     * Prompt user to select the option with print the option
+     * @param option All the option that available for user to choose
+     * @return User input
+     */
     private static int getMenuInput(String[] option) {
         int input = 0;
         int optionLength;
-        String exit = "ExitQuitReturn";
+        Set<String> exit = Set.of("Exit", "Return to last page");
         do{
             boolean hasExit = false;
-            System.out.println("Please choose your option: ");
             for (int i = 0; i < option.length; i++) {
                 if(exit.contains(option[i]) && !hasExit) {
                     System.out.printf("0. %s\n", option[i]);
@@ -1796,6 +1768,7 @@ public abstract class Main {
     }
     
      private static void generatePurchaseOrder(){
+         Inventory inventory = Inventory.getInstance();
             PurchaseOrder purchaseorder = new PurchaseOrder(getNextOrderNumber(), new Date(), user.getCurrentID(), "Ordering" , 0.0);
             Order order;
             String itemId;
@@ -1803,19 +1776,27 @@ public abstract class Main {
             String supplierId;
             double totalCost;
             double purchaseOrderTotalCost = 0.0;
+            Item item;
             do {
-                    System.out.print("Enter item ID to restock(999 to stop): ");
-                    itemId = scan.nextLine().trim();
-
-                    if (itemId.equals("999")){
-                        System.out.println("Restocking stopped!");
+                InventoryUIController controller = new InventoryUIController(inventory.getItemListWithColumns());
+                    InventoryUI ui = new InventoryUI(controller);
+                    ui.showInventoryListGui();
+                    int index = controller.getInventorySelectedIndex();
+                    if(index == -1)
                         break;
-                    }
+                    item = inventory.getItem(index);
+                    //System.out.print("Enter item ID to restock(999 to stop): ");
+                    //itemId = scan.nextLine().trim();
 
-                    if (!isItemExists(itemId)) {
-                    System.out.println("Item not found.");
-                    continue;
-                    }
+//                    if (itemId.equals("999")){
+//                        System.out.println("Restocking stopped!");
+//                        break;
+//                    }
+
+//                    if (!isItemExists(itemId)) {
+//                    System.out.println("Item not found.");
+//                    continue;
+//                    }
                     System.out.println("Item found...");
 
 
@@ -1833,22 +1814,22 @@ public abstract class Main {
                         return;
                     }
 
-                    supplierId = getSupplierIdbyItemId(itemId);
+                    supplierId = getSupplierIdbyItemId(item.getItemId());
 
-                    totalCost = (getItemCost(itemId) * quantityToAdd) + (getShippingFee(itemId) * quantityToAdd) + getImportDuty(supplierId);
+                    totalCost = (getItemCost(item.getItemId()) * quantityToAdd) + (getShippingFee(item.getItemId()) * quantityToAdd) + getImportDuty(supplierId);
                     purchaseOrderTotalCost += totalCost;
 
                     //po.updateTotalCost(orderNo, purchaseOrderTotalCost);
                     // Formula (quantity * price) + (shipping fee per kg * quantity) + import fee
                     if(getSupplierType(supplierId).equals("Local")){
-                        System.out.println("Item "+ itemId +" have a Local Supplier. No additional import duty.");
+                        System.out.println("Item "+ item.getItemId() +" have a Local Supplier. No additional import duty.");
                     }
                     else{
-                        System.out.println("Item " + itemId + " have a Foreign Supplier. Additional of RM20.00 import duty!");
+                        System.out.println("Item " + item.getItemId() + " have a Foreign Supplier. Additional of RM20.00 import duty!");
                     }
                     
                     System.out.printf("\nTotal cost for this order: RM%.2f\n", totalCost);
-                    order = new Order(itemId, purchaseorder.getOrderNo(), quantityToAdd, supplierId, totalCost);
+                    order = new Order(item.getItemId(), purchaseorder.getOrderNo(), quantityToAdd, supplierId, totalCost);
 
                     System.out.print("Do you want to order more? (Y/N)\n>");
                     choice = scan.nextLine().toLowerCase();  

@@ -1,4 +1,4 @@
-package com.project.inventory;
+package com.project.inventory.dao;
 
 import java.util.ArrayList;
 

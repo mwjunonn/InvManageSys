@@ -1,4 +1,6 @@
-package com.project.inventory;
+package com.project.inventory.application;
+import com.project.inventory.dao.Database;
+
 import java.util.ArrayList;
 
 public abstract class User {

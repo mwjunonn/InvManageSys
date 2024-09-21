@@ -1,4 +1,6 @@
-package com.project.inventory;
+package com.project.inventory.application;
+
+import com.project.inventory.dao.Database;
 
 import java.util.*;
 
@@ -108,12 +110,7 @@ public class Inventory implements Runnable{
     }
 
     public boolean checkIdUnique(String id) {
-        for(Item i : itemList){
-            if(i.getItemId().equals(id)){
-                return false;
-            }
-        }
-        return true;
+       return !itemIdWithIndex.containsKey(id);
     }
 
     public void closeInventory(){

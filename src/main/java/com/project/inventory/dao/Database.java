@@ -1,4 +1,4 @@
-package com.project.inventory;
+package com.project.inventory.dao;
 
 import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 import java.sql.*;
@@ -43,9 +43,9 @@ public class Database {
         if(success)
             return;
         try {
+            DriverManager.registerDriver(new com.mysql.cj.jdbc.Driver());
             con = DriverManager.getConnection(dbURL, "assignment", "123456");
             con.setAutoCommit(true);
-
             if(con.isValid(1))
                 success = true;
         } catch (Exception e) {

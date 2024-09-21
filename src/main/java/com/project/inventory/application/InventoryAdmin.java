@@ -1,4 +1,4 @@
-package com.project.inventory;
+package com.project.inventory.application;
 
 public class InventoryAdmin extends User {
     private final static String position = "InventoryAdmin";

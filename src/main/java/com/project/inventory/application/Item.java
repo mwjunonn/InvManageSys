@@ -1,14 +1,15 @@
-package com.project.inventory;
+package com.project.inventory.application;
 
 
+import com.project.inventory.dao.Database;
+import com.project.inventory.dao.DatabaseThread;
 import java.util.InputMismatchException;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Item{
     private String itemId ="null", itemName, itemType, itemUnit;
-    private static Database db = new Database("inventory");
+    private static final Database db = new Database("inventory");
     private double latestPrice, quantity, per_unit;
 
 
@@ -148,15 +149,12 @@ public class Item{
         return db.getResult().size() != 1; //if 1 is the column name only
     }
 
-    private boolean create() {
-        if(checkDatabase()){
-            return false;
-        }else {
+    private void create() {
+        if (!checkDatabase()) {
             DatabaseThread dbb = new DatabaseThread("inventory", DatabaseThread.TypeOfQuery.INSERT);
             dbb.insertTable(new String[]{"item_id", "item_name", "item_type", "quantity", "cost", "per_unit", "unit"},
                     new String[]{itemId, itemName, itemType, String.valueOf(quantity), String.valueOf(latestPrice), String.valueOf(per_unit), itemUnit});
             dbb.start();
-            return true;
         }
     }
 
