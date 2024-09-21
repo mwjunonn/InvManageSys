@@ -821,11 +821,12 @@ public abstract class Main {
         int choice = 0;
         Supplier supplierManager = new Supplier();
         SupplyItem supplyItemManager = new SupplyItem();
+        ArrayList<Supplier> suppliers = supplierManager.getAllSupplierInfo();
+        ArrayList<SupplyItem> supplyItems = supplyItemManager.getAllSupplyItem();
+
       
 
         do{
-        ArrayList<Supplier> suppliers = supplierManager.getAllSupplierInfo();
-        ArrayList<SupplyItem> supplyItems = supplyItemManager.getAllSupplyItem();
         
             try{
                 System.out.println("-----------------");
@@ -858,19 +859,19 @@ public abstract class Main {
                         }
                         switch(choice){
                             case 1: 
-                                displaySupplierInfo(supplierManager);
+                                displaySupplierInfo(suppliers);
                                 System.out.println("Press Enter to Continue...");
                                 scan.nextLine();
                                 break;
                             case 2:
-                                createSupplier(supplierManager);
+                                createSupplier(suppliers, supplyItems, supplierManager);
                                 break;
                             case 3:
-                                displaySupplierInfo(supplierManager);
-                                editSupplierInfo(supplierManager);
+                                displaySupplierInfo(suppliers);
+                                editSupplierInfo(suppliers, supplierManager);
                                 break;
                             case 4:
-                                deleteSupplierDetails(supplierManager);
+                                deleteSupplierDetails(suppliers, supplyItems, supplierManager);
                                 break;
                             case 5:
                                 break;
@@ -900,20 +901,20 @@ public abstract class Main {
                         }
                         switch(choice){
                             case 1:
-                                displayAllSupplyItems(supplyItemManager);
+                                displayAllSupplyItems(supplyItems);
                                 System.out.println("Press Enter to Continue...");
                                 scan.nextLine();
                                 break;
                             case 2:
-                                createSupplyItem(supplyItemManager);
+                                createSupplyItem(supplyItems, suppliers, supplyItemManager);
                                 break;
                             case 3:
-                                displayAllSupplyItems(supplyItemManager);
-                                editSupplyItem();
+                                displayAllSupplyItems(supplyItems);
+                                editSupplyItem(supplyItems, suppliers);
                                 break;
                             case 4:
-                                displayAllSupplyItems(supplyItemManager);
-                                deleteSupplyItem(supplyItemManager);
+                                displayAllSupplyItems(supplyItems);
+                                deleteSupplyItem(supplyItems, suppliers, supplyItemManager);
                                 break;
                             case 5: 
                                 break;
@@ -938,11 +939,8 @@ public abstract class Main {
         }while(choice != 3);
     }
 
-    private static void displaySupplierInfo(Supplier supplierManager) {
+    private static void displaySupplierInfo(ArrayList<Supplier> suppliers) {
         
-        ArrayList<Supplier> suppliers = supplierManager.getAllSupplierInfo();
-
-
         if (suppliers.isEmpty()) {
             System.out.println("No supplier information found.");
 
@@ -968,10 +966,10 @@ public abstract class Main {
         }
     }
 
-    private static void createSupplier(Supplier supplierManager){
+    private static void createSupplier(ArrayList<Supplier> suppliers, ArrayList<SupplyItem> supplyItems, Supplier supplierManager){
         Supplier tempSupplier;
         SupplyItem supplyItemManager = new SupplyItem();
-        String id ="", name, address, email;
+        String id, name, address, email;
         String type = "";
         double import_duty = 0.00, shipping_fee = 0.00;
         int options = 0, exit = 1;
@@ -984,7 +982,7 @@ public abstract class Main {
 
 
             do{
-                id = generateSupplierID(supplierManager);
+                id = generateSupplierID(suppliers);
                 System.out.println("ID: " + id);
                 System.out.print("Enter Supplier Name: ");
                 name = scan.nextLine();
@@ -1033,7 +1031,8 @@ public abstract class Main {
                         tempSupplier = new LocalSupplier();
                     }else
                         tempSupplier = new ForeignSupplier();
-
+                    
+                    
                     tempSupplier.setSupplierId(id);
                     tempSupplier.setSupplierName(name);
                     tempSupplier.setSupplierAddress(address);
@@ -1047,17 +1046,15 @@ public abstract class Main {
                     }
 
                     //choose item and add item
+                    suppliers.add(tempSupplier);
                     supplierManager.addSupplier(tempSupplier);
-
+                    
                     do{
                         System.out.println("Please Select Item...");
                         itemIndex = selectInventory();
                         if(itemIndex != -1){
                             Item item = inventory.getItem(itemIndex);
-                            //System.out.print("Please Enter The Number For The Product That The Supplier Will Be Providing: ");
-                            //itemIndex = Integer.parseInt(scan.nextLine());
-
-                            //itemID = String.format("I%04d", itemIndex);
+                            
 
                             System.out.println("Please Enter The Information: ");
                             System.out.println("Item ID: " + item.getItemId());
@@ -1069,17 +1066,18 @@ public abstract class Main {
                             }catch(NumberFormatException ex){
                                 System.out.println("Error: Cannot Read The Shipping Fee!");
                             }
+                            SupplyItem newSupplyItem = new SupplyItem();
 
-                            
+                            newSupplyItem.setSupplierId(id);
+                            newSupplyItem.setItemId(item.getItemId());
+                            newSupplyItem.setItemName(item.getItemName());
+                            newSupplyItem.setShippingFee(shipping_fee);
+                            newSupplyItem.setCost(item.getLatestPrice());
+
+                            if(supplyItemManager.writeData(newSupplyItem)){
+                                supplyItems.add(newSupplyItem);
+                                SupplyItem.supplyItemNum++;
                                 
-
-
-                            supplyItemManager.setSupplierId(id);
-                            supplyItemManager.setItemId(item.getItemId());
-                            supplyItemManager.setShippingFee(shipping_fee);
-                            supplyItemManager.setCost(item.getLatestPrice());
-
-                            if(supplyItemManager.writeData(supplyItemManager)){
                                 System.out.println("Data Has Added.");        
                                 System.out.println();
                                 do{
@@ -1096,6 +1094,9 @@ public abstract class Main {
                                     if(options != 1 && options !=2)
                                         System.out.println("Invalid Options! Please Try Again");
                                 }while(options != 1 && options != 2);
+                            }
+                            else{
+                               System.out.println("This item is already associated with the supplier. Please enter a different item.");
                             }
                         }
 
@@ -1142,23 +1143,35 @@ public abstract class Main {
 
     }
     
-    private static String generateSupplierID(Supplier supplierManager){
-        String id = "";
-        for(int i = 1; i < 100; i++){
-                    id = String.format("S%04d", i );
-                    if(!supplierManager.isSupplierExists(id)){
-                        return id;
+    private static String generateSupplierID(ArrayList<Supplier> suppliers){
+        int id = 1;
+        String newSupplierId;
+        boolean exist;
+        while(true){
+                newSupplierId = String.format("S%04d", id);
+                exist= false;
+                
+                for(int i = 0; i < suppliers.size(); i++){
+                    if(suppliers.get(i).getSupplierId().equals(newSupplierId)){
+                        exist = true;
+                        break;
                     }
+                }
+                
+                if(!exist)
+                    break;
+                
+                id++;
+        
         }
-        return id;
+        return newSupplierId;
     }
 
-    private static void editSupplierInfo(Supplier supplierManager){
+    private static void editSupplierInfo(ArrayList<Supplier> suppliers, Supplier supplierManager){
         int options = 0, options2 = 0, exit = 0;
         String temp, columnName, id;
         ForeignSupplier foreignSupplier;
         LocalSupplier localSupplier;
-        ArrayList<Supplier> suppliers = supplierManager.getAllSupplierInfo();
 
 
         if(Supplier.numSupplier  != 0){
@@ -1169,8 +1182,8 @@ public abstract class Main {
                 
 
 
-                if(supplierManager.isSupplierExists(id)){
-                    Supplier supplier = supplierManager.getAllSupplierInfo(id);
+                if(supplierManager.isSupplierExists(suppliers, id)){
+                    Supplier supplier = supplierManager.getAllSupplierInfo(suppliers, id);
                     
                     if(supplier != null){
                         do{
@@ -1222,7 +1235,13 @@ public abstract class Main {
                                             switch(options){
                                                 case 1:
                                                     columnName = "supplier_name";
-                                                    supplierManager.modifySupplier(columnName, id, temp);
+                                                    supplier.setSupplierName(temp);
+                                                    
+                                                    if(supplierManager.modifySupplier(columnName, id, temp))
+                                                        System.out.println("New Data Updated!");
+                                                    else
+                                                        System.out.println("Failed to Update New Data!");
+                                                    
                                                     exit = 1;
                                                     break;
                                                 case 2:
@@ -1274,7 +1293,12 @@ public abstract class Main {
                                             switch(options){
                                                 case 1:
                                                     columnName = "supplier_address";
-                                                    supplierManager.modifySupplier(columnName, id, temp);
+                                                    supplier.setSupplierAddress(temp);
+                                                    if(supplierManager.modifySupplier(columnName, id, temp))
+                                                        System.out.println("New Data Updated!");
+                                                    else
+                                                        System.out.println("Failed to Update New Data!");
+                                                    
                                                     exit = 1;
                                                     break;
                                                 case 2:
@@ -1326,7 +1350,12 @@ public abstract class Main {
                                             switch(options){
                                                 case 1:
                                                     columnName = "email_address";
-                                                    supplierManager.modifySupplier(columnName, id, temp);
+                                                    supplier.setSupplierEmail(temp);
+                                                    if(supplierManager.modifySupplier(columnName, id, temp))
+                                                        System.out.println("New Data Updated!");
+                                                    else
+                                                        System.out.println("Failed to Update New Data!");
+                                                    
                                                     exit = 1;
                                                     break;
                                                 case 2:
@@ -1392,7 +1421,7 @@ public abstract class Main {
 
     }
 
-    private static void deleteSupplierDetails(Supplier supplierManager){
+    private static void deleteSupplierDetails(ArrayList<Supplier> suppliers, ArrayList<SupplyItem> supplyItems, Supplier supplierManager){
         int options = 0, exit = 0;
         String id;
         SupplyItem supplyMainManager = new SupplyItem();
@@ -1401,12 +1430,12 @@ public abstract class Main {
 
         if(Supplier.numSupplier != 0){
             do{
-                displaySupplierInfo(supplierManager);
+                displaySupplierInfo(suppliers);
                 System.out.print("Please Enter The Supplier's ID to Delete): ");
                 id = scan.nextLine();
-                if(supplierManager.isSupplierExists(id)){
+                if(supplierManager.isSupplierExists(suppliers, id)){
                     do{
-                        Supplier supplier = supplierManager.getAllSupplierInfo(id);
+                        Supplier supplier = supplierManager.getAllSupplierInfo(suppliers, id);
                         System.out.println("Supplier Information: ");
                         System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                         System.out.println(supplier.toString());
@@ -1422,10 +1451,31 @@ public abstract class Main {
                         }
                         switch(options){
                             case 1:
-                                supplyMainManager.deleteSupplyItem(id);
-                                supplierManager.deleteSupplier(id);
-                                Supplier.numSupplier--;
-                                exit = 1;
+                                for(int i = 0; i < supplyItems.size();i++){
+                                    if(supplyItems.get(i).getSupplierId().equals(id)){
+                                        supplyItems.remove(i);
+                                    }
+                                }
+                                if(supplyMainManager.deleteSupplyItem(id)){
+                                    for(int i = 0; i < suppliers.size(); i++){
+                                        if(suppliers.get(i).getSupplierId().equals(id)){
+                                            suppliers.remove(i);
+                                        }
+                                    }
+                                    if(supplierManager.deleteSupplier(id)){
+                                        System.out.printf("The Supplier of %s Has Been Deleted!", id);
+                                        System.out.println();
+                                    }else{
+                                        System.out.printf("Failed to Delete The Data of %s Supplier\n ", id);
+                                        System.out.println();
+
+                                    }
+                                    Supplier.numSupplier--;
+                                    exit = 1;
+                                }
+                                else{
+                                    System.out.println("Failed to Delete The Data!");
+                                }
                                 break;
                             case 2:
                                 exit = 1;
@@ -1473,11 +1523,8 @@ public abstract class Main {
 
     }
 
-    private static void displayAllSupplyItems(SupplyItem supplyItemManager){
-        ArrayList<SupplyItem> supplyItems = supplyItemManager.getAllSupplyItem(); 
-
-        
-        
+    private static void displayAllSupplyItems(ArrayList<SupplyItem> supplyItems){
+    
         if(supplyItems.isEmpty()){
             System.out.println("No Supply Item Data Found.");
         }else{
@@ -1499,9 +1546,10 @@ public abstract class Main {
         }
     }
     
-    private static void editSupplyItem(){
+    private static void editSupplyItem(ArrayList<SupplyItem> supplyItems, ArrayList<Supplier> suppliers){
         String supplierId, shippingFee;
         SupplyItem supplyItemManager = new SupplyItem();
+        Supplier supplierManager = new Supplier();
         SupplyItem supplyItemInfo;
         int options = 0;
         double newValue;
@@ -1522,8 +1570,8 @@ public abstract class Main {
                 
              
                          
-                    if(supplyItemManager.isSupplierExists(supplierId)){
-                        supplyItemInfo = supplyItemManager.getAllSupplyItem(supplierId, item.getItemId());
+                    if(supplierManager.isSupplierExists(suppliers, supplierId)){
+                        supplyItemInfo = supplyItemManager.getAllSupplyItem(supplyItems,supplierId, item.getItemId());
                         if(supplyItemInfo != null){
                             do{
                                 System.out.println("--------------------------------------------------------------");
@@ -1564,7 +1612,12 @@ public abstract class Main {
                                                 }
                                                 switch(options){
                                                     case 1: 
-                                                        supplyItemManager.updateData("shipping_fee", supplierId, item.getItemId(), shippingFee);
+                                                        supplyItemInfo.setShippingFee(newValue);
+                                                        if(supplyItemManager.updateData("shipping_fee", supplierId, item.getItemId(), shippingFee))
+                                                            System.out.println("New Data Updated!");                                                     
+                                                        else
+                                                            System.out.println("Failed to Update New Data!");
+                                                        
                                                         break;
                                                     case 2:
                                                         System.out.println("Modification has been canceled. No changes were made.");
@@ -1609,10 +1662,11 @@ public abstract class Main {
         }
     }
     
-    private static void createSupplyItem(SupplyItem supplyItemManager){
+    private static void createSupplyItem(ArrayList<SupplyItem> supplyItems, ArrayList<Supplier> suppliers, SupplyItem supplyItemManager){
         int itemIndex;
         double shippingFee;
         String supplierId;
+        Supplier supplierManager = new Supplier();
         Inventory inventory = Inventory.getInstance();
 
         
@@ -1627,7 +1681,7 @@ public abstract class Main {
         
             Item item = inventory.getItem(itemIndex);
 
-            if(supplyItemManager.isSupplierExists(supplierId)){
+            if(supplierManager.isSupplierExists(suppliers, supplierId)){
 
                 System.out.println("Information");
                 System.out.println("-----------");
@@ -1636,12 +1690,19 @@ public abstract class Main {
                 shippingFee = Double.parseDouble(scan.nextLine());
                       
                 if(shippingFee > 0 && shippingFee <1000){
-                    supplyItemManager.setSupplierId(supplierId);
-                    supplyItemManager.setItemId(item.getItemId());
-                    supplyItemManager.setShippingFee(shippingFee);
-                    supplyItemManager.setCost(item.getLatestPrice());
-                    if(supplyItemManager.writeData(supplyItemManager)){
+                    SupplyItem newSupplyItem = new SupplyItem();
+                    newSupplyItem.setSupplierId(supplierId);
+                    newSupplyItem.setItemId(item.getItemId());
+                    newSupplyItem.setItemName(item.getItemName());
+                    newSupplyItem.setShippingFee(shippingFee);
+                    newSupplyItem.setCost(item.getLatestPrice());
+                    if(supplyItemManager.writeData(newSupplyItem)){
+                        supplyItems.add(newSupplyItem);
                         System.out.println("Data Added Successfully"); 
+                        
+                    }
+                    else{
+                        System.out.println("This item is already associated with the supplier. Please enter a different item.");
                     }
                 }
                 else{
@@ -1660,10 +1721,11 @@ public abstract class Main {
      
     } 
     
-    private static void deleteSupplyItem(SupplyItem supplyItemManager){
-        int itemIndex = 0, options = 0;
+    private static void deleteSupplyItem(ArrayList<SupplyItem> supplyItems, ArrayList<Supplier> suppliers, SupplyItem supplyItemManager){
+        int itemIndex, options = 0;
         String supplierId;
-        SupplyItem supplyItem;
+        Supplier supplierManager = new Supplier();
+        SupplyItem tempSupplyItem;
         Inventory inventory = Inventory.getInstance();
 
         
@@ -1676,16 +1738,16 @@ public abstract class Main {
             if(itemIndex != -1){
                 Item item = inventory.getItem(itemIndex);
 
-                if(supplyItemManager.isSupplierExists(supplierId)){
+                if(supplierManager.isSupplierExists(suppliers, supplierId)){
                     do{
-                        supplyItem = supplyItemManager.getAllSupplyItem(supplierId, item.getItemId());
-                        if(supplyItem != null){
+                        tempSupplyItem = supplyItemManager.getAllSupplyItem(supplyItems, supplierId, item.getItemId());
+                        if(tempSupplyItem != null){
 
 
                             System.out.println("--------------------------------------------------------------");
                             System.out.printf("| %-11s | %-10s | %-16s | %-12s |\n", "Supplier ID", "Item ID", "Shipping Fee(RM)", "Cost(RM)");
                             System.out.println("--------------------------------------------------------------");
-                            System.out.printf(supplyItem.toString());
+                            System.out.printf(tempSupplyItem.toString());
                             System.out.println("--------------------------------------------------------------");
                             try{
                                 System.out.println("Do You Confirm To Delete The Record?");
@@ -1698,8 +1760,18 @@ public abstract class Main {
                             }
                             switch(options){
                                 case 1:
-                                    supplyItemManager.deleteSupplyItem(supplierId, item.getItemId());
-                                    SupplyItem.supplyItemNum--;
+                                    if(supplyItemManager.deleteSupplyItem(supplierId, item.getItemId())){
+                                        for(int i = 0; i < supplyItems.size();i++){
+                                            if(supplyItems.get(i).getSupplierId().equals(supplierId) && supplyItems.get(i).getItemId().equals(item.getItemId())){
+                                                supplyItems.remove(i);
+                                            }
+                                        }
+                                        SupplyItem.supplyItemNum--;
+                                        System.out.println("The Data Has Been Deleted!");
+                                    }
+                                    else{
+                                        System.out.println("Failed to Delete The Data!");
+                                    }
                                     break;
                                 case 2:
                                     break;

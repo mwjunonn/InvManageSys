@@ -81,7 +81,7 @@ public class Supplier {
         ArrayList<Supplier> suppliers = new ArrayList<>();
         Supplier supplier;
         double importDuty = 0.0;
-
+            
         db.readTable(columns); 
         ArrayList<String> resultList = db.getResult();
 
@@ -113,47 +113,25 @@ public class Supplier {
         return suppliers;
     }
     
-    public boolean isSupplierExists(String supplierId) {
+    public boolean isSupplierExists(ArrayList<Supplier> suppliers, String supplierId) {
         
-
-        String[] columns = {"supplier_id"};
-        Object[][] condition = {{"supplier_id", supplierId}};
-
-        if (db.readTable(columns, condition, "")) {
-            ArrayList<ArrayList<Object>> result = db.getObjResult();
-            return result != null && result.size() > 1;
+        for(int i = 0; i < suppliers.size(); i++){
+            if(suppliers.get(i).getSupplierId().equals(supplierId))
+                return true;
+            
         }
         return false;
     }
 
-    public Supplier getAllSupplierInfo(String supplierId) {
-        String[] columns = {"supplier_id", "supplier_name", "supplier_address", "email_address", "supplier_type", "import_duty"};
-        Object[][] condition = {{"supplier_id", supplierId}};
-        double importDuty = 0.00;
-
-        db.readTable(columns, condition);
-
-        ArrayList<ArrayList<Object>> resultList = db.getObjResult();
-
-        if(resultList.size() <= 1){
-          
-            return null;
-        }
-
-        ArrayList<Object> supplierData = resultList.get(1);
-
+    public Supplier getAllSupplierInfo(ArrayList<Supplier> suppliers, String supplierId) {
         
-        try{
-            importDuty = Double.parseDouble(supplierData.get(5).toString());
-        }catch(NumberFormatException ex){
-            System.out.println("Error: Parsing Import Duty");
+        for(int i =0 ; i < suppliers.size(); i++){
+            if(suppliers.get(i).getSupplierId().equals(supplierId)){
+                return suppliers.get(i);
+            }           
         }
-
-        if ("Local".equalsIgnoreCase(supplierData.get(4).toString())) {
-            return new LocalSupplier(supplierData.get(0).toString(), supplierData.get(1).toString(), supplierData.get(2).toString(), supplierData.get(3).toString(), supplierData.get(4).toString(), importDuty);
-        } else {
-            return new ForeignSupplier(supplierData.get(0).toString(), supplierData.get(1).toString(), supplierData.get(2).toString(), supplierData.get(3).toString(), supplierData.get(4).toString(), importDuty);
-        }
+        
+        return null;
     }
     
     public void addSupplier(Supplier supplier){
@@ -246,31 +224,20 @@ public class Supplier {
         return true;
     }
 
-    public void  modifySupplier(String columnName, String supplierId, String temp){
-        boolean success;
+    public boolean  modifySupplier(String columnName, String supplierId, String temp){
         Object[][] values = {{columnName, temp}};
 
         Object[][] condition = {{"supplier_id", supplierId}};
 
-        success = db.updateTable(values, condition);
+        return db.updateTable(values, condition);
 
-        if(success){
-            System.out.println("New Data Updated!");
-        }
-        else
-            System.out.println("Failed to Update New Data!");
+        
     }
 
-    public void deleteSupplier(String supplierId){
-        boolean success;
+    public boolean deleteSupplier(String supplierId){
         Object[][] condition = {{"supplier_id", supplierId}};
 
-        success = db.deleteRecord(condition);
-
-        if(success)
-            System.out.printf("The Supplier of %s Has Been Deleted!\n", supplierId);
-        else
-            System.out.printf("Failed to Delete The Data of %s Supplier\n", supplierId);
+        return db.deleteRecord(condition);
 
     }
 }

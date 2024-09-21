@@ -67,6 +67,9 @@ public class SupplyItem {
     public void setCost(double cost){
         this.cost = cost;
     }
+    public void setItemName(String itemName){
+        this.itemName = itemName;
+    }
     
     
     
@@ -119,38 +122,16 @@ public class SupplyItem {
         
     }
     
-    public SupplyItem getAllSupplyItem(String supplierId, String itemId){
-        String[] columns = {"supplier_id", "supplier_item.item_id", "shipping_fee", "supplier_item.cost"};
-     
-        Object[][] condition ={{"supplier_id", supplierId}, {"supplier_item.item_id", itemId}};
-        double shipping_fee =0.00, cost2 = 0.00; 
+    public SupplyItem getAllSupplyItem(ArrayList<SupplyItem> supplyItems,String supplierId, String itemId){
         
-        db.readTable(columns, condition);
-        
-        ArrayList<ArrayList<Object>> result = db.getObjResult();
-        
-        if(result.size() <= 1){
-          
-            return null;
+        for(int i = 0;i < supplyItems.size(); i++){
+            if(supplyItems.get(i).getSupplierId().equals(supplierId) && supplyItems.get(i).getItemId().equals(itemId)){
+                return supplyItems.get(i);
+            }
         }
-       
-        ArrayList<Object> supplyItemData = result.get(1);
-        
-        try{
-            shipping_fee = Double.parseDouble(supplyItemData.get(2).toString());
-        }catch(NumberFormatException ex){
-            System.out.println("Error: Parsing Shipping Fee");
-        }
-        try{
-            cost2 = Double.parseDouble(supplyItemData.get(3).toString());
-        }catch(NumberFormatException ex){
-            System.out.println("Error: Parsing Cost");
-        }
-        
-        
-        return new SupplyItem(supplyItemData.get(0).toString(), supplyItemData.get(1).toString(), shipping_fee, cost2);
-        
-        
+      
+        return null;
+
     }
     
     public boolean isSupplierExists(String supplierId) {
@@ -167,12 +148,8 @@ public class SupplyItem {
     }
   
     public boolean writeData(SupplyItem supplyItem){
-           
-            double shippingFee = supplyItem.getShippingFee();
-            double cost = supplyItem.getCost();
             
             if (isSupplierItemExists(supplyItem.getSupplierId(), supplyItem.getItemId())) {
-                System.out.println("This item is already associated with the supplier. Please enter a different item.");
                 return false;
             }else{
         
@@ -200,34 +177,26 @@ public class SupplyItem {
         return result.size() > 1;
     }
     
-    public void updateData(String columnName, String supplierId, String itemId, String temp){
+    public boolean updateData(String columnName, String supplierId, String itemId, String temp){
         Object[][] values = {{columnName, temp}};
         
         Object[][] condition  = {{"supplier_id", supplierId},{"item_id", itemId}};
         
-        if(db.updateTable(values, condition)){
-            System.out.println("New Data Updated");
-        }
-        else 
-            System.out.println("Failed to Update New Data!");
+        return db.updateTable(values, condition);
+            
     }
     
-    public void deleteSupplyItem(String supplierId, String itemId){
+    public boolean deleteSupplyItem(String supplierId, String itemId){
         Object[][] condition = {{"supplier_id", supplierId}, {"item_id", itemId}};
         
-        if(db.deleteRecord(condition))
-            System.out.println("The Data Has Been Deleted!");
-        else
-            System.out.println("Failed to Delete The Data");
+        return db.deleteRecord(condition);
     }
     
-     public void deleteSupplyItem(String supplierId){
+     public boolean deleteSupplyItem(String supplierId){
         Object[][] condition = {{"supplier_id", supplierId}};
         
-        if(db.deleteRecord(condition))
-            System.out.println("The Data Has Been Deleted!");
-        else
-            System.out.println("Failed to Delete The Data");
+        return db.deleteRecord(condition);
+         
     }
 
 }
