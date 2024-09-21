@@ -1995,7 +1995,6 @@ public abstract class Main {
                     } else {
                         System.out.println("Failed to update order date.");
                     }
-                    scan.nextLine();
                     enterToContinue();
                     break;
                 case 2:
@@ -2010,7 +2009,6 @@ public abstract class Main {
                     } else {
                         System.out.println("Failed to update Total Cost.");
                     }
-                    scan.nextLine();
                     enterToContinue();
                     break;
                 case 4: 
@@ -2068,7 +2066,6 @@ public abstract class Main {
                     } else {
                         System.out.println("Failed to update purchase order.");
                     }
-                    scan.nextLine();
                     enterToContinue();
                     break;
                 case 5:
