@@ -133,19 +133,6 @@ public class SupplyItem {
         return null;
 
     }
-    
-    public boolean isSupplierExists(String supplierId) {
-        Database db1 = new Database("supplier");
-
-        String[] columns = {"supplier_id"};
-        Object[][] condition = {{"supplier_id", supplierId}};
-
-        if (db1.readTable(columns, condition, "")) {
-            ArrayList<ArrayList<Object>> result = db1.getObjResult();
-            return result != null && result.size() > 1;
-        }
-        return false;
-    }
   
     public boolean writeData(SupplyItem supplyItem){
             
