@@ -1840,7 +1840,13 @@ public abstract class Main {
 
                     //po.updateTotalCost(orderNo, purchaseOrderTotalCost);
                     // Formula (quantity * price) + (shipping fee per kg * quantity) + import fee
-                    //Hvaent done
+                    if(getSupplierType(supplierId).equals("Local")){
+                        System.out.println("Item "+ itemId +" have a Local Supplier. No additional import duty.");
+                    }
+                    else{
+                        System.out.println("Item " + itemId + " have a Foreign Supplier. Additional of RM20.00 import duty!");
+                    }
+                    
                     System.out.printf("\nTotal cost for this order: RM%.2f\n", totalCost);
                     order = new Order(itemId, purchaseorder.getOrderNo(), quantityToAdd, supplierId, totalCost);
 
@@ -1852,6 +1858,9 @@ public abstract class Main {
                             System.out.println("Invalid choice. Please enter 'y' for yes or 'n' for no.");
                             System.out.println("Do you want to order again (Y/N)?");
                             choice = scan.nextLine().toLowerCase();  
+                            if(choice.equals("y")){
+                                break;
+                            }
                         } while(!choice.equals("n"));
                     }
 
@@ -2034,11 +2043,18 @@ public abstract class Main {
                         }
                         else if(choice == 5){
                             status = "Delivered";
-                            success = updateInventoryQuantity(orderNo);
-                            if (success){
-                                System.out.println("Inventory updated successfully for order number: "+ orderNo);
-                            } else {
-                                System.out.println("Inventory update of  failed!");
+                            if(!getStatus(orderNo).equals("Delivered")){
+                                success = updateInventoryQuantity(orderNo);
+                                if (success){
+                                    System.out.println("Inventory updated successfully for order number: " + orderNo);
+                                    System.out.println("Status set to: " + status);
+                                }
+                                else{
+                                    System.out.println("Update of quantitiy failed!");
+                                }
+                            }
+                            else{
+                                System.out.println("Inventory not updated since the previous status is (Delivered)");
                             }
                         }
                     }           
@@ -2056,7 +2072,7 @@ public abstract class Main {
                     enterToContinue();
                     break;
                 case 5:
-                    break;
+                break;
             }
         }
         
@@ -2096,26 +2112,31 @@ public abstract class Main {
                             break;
                         case 5:
                             newStatus = "Delivered";
-                            boolean success = updateInventoryQuantity(orderNo);
-                            if (success){
-                                System.out.println("Inventory updated successfully for order number: " + orderNo);
+                            if(!getStatus(orderNo).equals("Delivered")){
+                                boolean success = updateInventoryQuantity(orderNo);
+                                if (success){
+                                    System.out.println("Inventory updated successfully for order number: " + orderNo);
+                                    System.out.println("New Status set to: " + newStatus);
+                                }
+                                else{
+                                    System.out.println("Update of quantitiy failed!");
+                                }
                             }
                             else{
-                                System.out.println("Update of quantitiy failed!");
+                                System.out.println("Inventory not updated since the previous status is (Delivered)");
                             }
                             break;
+                            
                         case 6:
                             System.out.println("Returning to the last page...");
                             return; 
                     }
                     break; 
                 } else {
-                    System.out.println("Invalid choice! Please enter a number between 1 and 4.");
+                    System.out.println("Invalid choice! Please enter a number between 1 and 6.");
                 }
             }
-
-            // Proceed with the new status or return logic
-            if (choice != 6) {
+            if (choice != 6 && choice != 5) {
                 System.out.println("New status set to: " + newStatus);
             }
             
@@ -2146,7 +2167,6 @@ public abstract class Main {
 
                 if (confirmation.equals("y")) {
                     purchaseorder.deletePurchaseOrder(orderNo);
-                    System.out.println("Purchase order " + orderNo + " has been deleted.");
                 } else {
                     System.out.println("Deletion cancelled.");
                 }
@@ -2158,52 +2178,59 @@ public abstract class Main {
             } while (userInput.equals("y"));
         }
         
-        private static String getLastOrderNumber() {
+
+        private static String getNextOrderNumber() {
             Database db = new Database("purchase_order");
             String[] columns = {"order_no"};
-            String condition = "ORDER BY order_no DESC LIMIT 1"; 
-             boolean success = db.readTable(columns, condition);
+            String condition = "ORDER BY order_no ASC";  
+            boolean success = db.readTable(columns, condition);
+
             if (!success) {
                 System.out.println("Query execution failed!");
                 return null;
             }
             ArrayList<ArrayList<Object>> result = db.getObjResult();
 
-            //Debug purpose
+            // Debug purpose
             //System.out.println("Result: " + result);
-
+            
+            //if nothign inside 
             if (result.size() <= 1) {
-                return null; 
-            }
-            if (!result.isEmpty()) {
-                result.remove(0);  
+                return "OD0001"; 
             }
 
-            String lastOrderNo = result.get(0).get(0).toString();
+            result.remove(0);
 
-            if (!lastOrderNo.startsWith("OD") || lastOrderNo.length() < 4) {
-                System.out.println("Invalid order number format: " + lastOrderNo);
-                return null;
+            ArrayList<Integer> orderNumbers = new ArrayList<>();
+            for (ArrayList<Object> row : result) {
+                String orderNo = row.get(0).toString();
+                if (orderNo.startsWith("OD") && orderNo.length() >= 4) {
+                    try {
+                        int num = Integer.parseInt(orderNo.substring(2)); 
+                        orderNumbers.add(num);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid order number format: " + orderNo);
+                    }
+                }
             }
-            return lastOrderNo.replaceAll(Database.delimiter, "").trim();
+
+            Collections.sort(orderNumbers);
+            
+            if(orderNumbers.get(0) > 1){
+                return "OD0001";
+            }
+            //for finding missing num
+            for (int i = 0; i < orderNumbers.size() - 1; i++) {
+                if (orderNumbers.get(i + 1) != orderNumbers.get(i) + 1) {
+                    int missingNumber = orderNumbers.get(i) + 1;
+                    return String.format("OD%04d", missingNumber);
+                }
+            }
+            //if no missing then use next order num
+            int nextOrderNumber = orderNumbers.get(orderNumbers.size() - 1) + 1;
+            return String.format("OD%04d", nextOrderNumber);
         }
-
-        private static String getNextOrderNumber() {
-            String lastOrderNo = getLastOrderNumber();
-            if (lastOrderNo == null) {
-                return "OD0001";  
-            }
-
-            String numericPart = lastOrderNo.substring(2);  // delete OD
-            try {
-                int orderNoInt = Integer.parseInt(numericPart) + 1;
-                return String.format("OD%04d", orderNoInt);
-            } catch (NumberFormatException e) {
-                System.out.println("Error parsing order number: " + lastOrderNo);
-                return "OD0001";  // Default to "OD0001" if there's an error
-            }
-        }
-
+        
         
         private static void orderMenu(){
             int choice = 0;
@@ -2257,18 +2284,24 @@ public abstract class Main {
         private static Object getSingleValue(String columnName, Object[][] condition, Database db) {
             String[] columns = {columnName};
 
-            // Use the readTable method to query the database with the column name and condition
             if (db.readTable(columns, condition)) {
                 ArrayList<ArrayList<Object>> results = db.getObjResult();
 
-                // Ensure there's more than just the header row (index 0)
+                // Ensure there's more than header row 
                 if (results.size() > 1) {
                     return results.get(1).get(0); // Return the first result of the first row
                 }
             }
-            return null; // Return null if no result found
+            return null; 
         }
-
+        
+        private static String getStatus(String orderNo){
+            Database dbpo = new Database("purchase_order");
+            Object[][] condition = {{"order_no", orderNo}};
+            Object result = getSingleValue("status", condition, dbpo);
+            return result != null ? result.toString().trim() : null;
+        }
+        
         private static String getSupplierIdbyItemId(String itemId) {
             Database dbsi = new Database("supplier_item"); 
             Object[][] condition = {{"item_id", itemId}};
@@ -2295,6 +2328,13 @@ public abstract class Main {
             Object[][] condition = {{"supplier_id", supplierId}};
             Object result = getSingleValue("import_duty", condition, dbs);
             return result != null ? Double.parseDouble(result.toString()) : 0;
+        }
+        
+        private static String getSupplierType(String supplierId) {
+            Database dbs = new Database("supplier"); 
+            Object[][] condition = {{"supplier_id", supplierId}};
+            Object result = getSingleValue("supplier_type", condition, dbs);
+            return result != null ? result.toString().trim() : null;
         }
         
         private static boolean isItemExists(String inputItemId) {
@@ -2334,7 +2374,7 @@ public abstract class Main {
             }
         }
 
-         private static void displayOrders(ArrayList<Order> orders) {
+        private static void displayOrders(ArrayList<Order> orders) {
             if (orders.isEmpty()) {
                 System.out.println("No purchase orders found.");
             } else {
@@ -2358,7 +2398,7 @@ public abstract class Main {
         private static void displayOrderSearch(String orderNo) {
             Order order = new Order();
             ArrayList<Order> orders = order.getOrder(orderNo);
-            displayOrders(orders);  // Reuse the common display logic
+            displayOrders(orders);  
         }
 
          private static void updateOrder() {
@@ -2370,7 +2410,7 @@ public abstract class Main {
             
              if (!itemId.matches("I\\d{4}")) {
                 System.out.println("Invalid item ID format. It should start with 'I' followed by exactly 4 digits (e.g., I0001).");
-                return; // Exit method if validation fails
+                return; 
             }
 
             System.out.print("Enter the Order No for the order you want to update:");
@@ -2459,12 +2499,12 @@ public abstract class Main {
             Order order = new Order();
             String orderNo, itemId;
             
-            System.out.print("Enter Item ID for deletion: ");
+            System.out.print("\nEnter Item ID for deletion: ");
             itemId = scan.nextLine();
             
             if (!itemId.matches("I\\d{4}")) {
                 System.out.println("Invalid item ID format. It should start with 'I' followed by exactly 4 digits (e.g., I0001).");
-                return; // Exit method if validation fails
+                return; 
             }
             
             System.out.print("Enter Order No for deletion: ");

@@ -146,10 +146,10 @@ public class PurchaseOrder {
          //Delete
         public void deletePurchaseOrder(String orderNo) {      
             if(order.deleteOrder(orderNo)){
-                System.out.println("[Order_item] with the Order No " + orderNo + " deleted successfully!");
+                System.out.println("Order Item data with the Order No " + orderNo + " deleted successfully!");
             }
             else{
-                System.out.println("[Order_item] with the Order No " + orderNo + " delete failed! Make sure the Order ID exists.");
+                System.out.println("Order Item data with the Order No " + orderNo + " delete failed! Make sure the Order ID exists.");
             }
 
             Object[][] condition = {{"order_no", orderNo}};
