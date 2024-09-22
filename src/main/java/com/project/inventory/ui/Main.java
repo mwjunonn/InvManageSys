@@ -1520,6 +1520,7 @@ public abstract class Main {
 
                     }while(options != 1 && options !=2 );
                     do{
+                        options = 0;
                         try{
                             System.out.println("Do You Want to Continue Delete Another Supplier?");
                             System.out.println("1. Yes");
@@ -1584,7 +1585,7 @@ public abstract class Main {
         Supplier supplierManager = new Supplier();
         SupplyItem supplyItemInfo;
         int options = 0;
-        double newValue;
+        double newValue =0.00;
         int itemIndex;
         Inventory inventory = Inventory.getInstance();
 
@@ -1624,8 +1625,13 @@ public abstract class Main {
                                 }
                                 switch(options){
                                     case 1:
-                                        System.out.print("Enter New Shipping Fee: RM");
-                                        newValue = Double.parseDouble(scan.nextLine());
+                                        
+                                        try{
+                                            System.out.print("Enter New Shipping Fee: RM");
+                                            newValue = Double.parseDouble(scan.nextLine());
+                                        }catch(NumberFormatException ex){
+                                            System.out.println("Shipping Fee Only Can Be Digit!");
+                                        }
                                         if(newValue > 0 && newValue < 1000){
                                             shippingFee = String.valueOf(newValue);
                                             do{
@@ -1670,8 +1676,12 @@ public abstract class Main {
 
                                         break;
                                     case 2:
-                                        System.out.print("Enter New Cost: RM");
-                                        newValue = Double.parseDouble(scan.nextLine());
+                                        try{
+                                            System.out.print("Enter New Cost: RM");
+                                            newValue = Double.parseDouble(scan.nextLine());
+                                        }catch(NumberFormatException ex){
+                                            System.out.println("Cost Only Can Be Digit!");
+                                        }
                                         if(newValue > 0 && newValue < 1000){
                                             cost = String.valueOf(newValue);
                                             do{
@@ -1763,10 +1773,22 @@ public abstract class Main {
 
                 System.out.println("Information");
                 System.out.println("-----------");
-                System.out.print("Cost: RM");
-                cost = Double.parseDouble(scan.nextLine());
-                System.out.print("Shipping Fee: RM");
-                shippingFee = Double.parseDouble(scan.nextLine());
+                try{
+                    System.out.print("Cost: RM");
+                    cost = Double.parseDouble(scan.nextLine());
+                }catch(NumberFormatException ex){
+                    System.out.println("You Cost Only Can Be Digit!");
+                    System.out.println("You will now be exited from this function.");
+                    return;
+                }
+                try{
+                    System.out.print("Shipping Fee: RM");
+                    shippingFee = Double.parseDouble(scan.nextLine());
+                }catch(NumberFormatException ex){
+                    System.out.println("You Shipping Fee Only Can Be Digit!");
+                    System.out.println("You will now be exited from this function.");
+                    return;
+                }
                       
                 if(shippingFee > 0 && shippingFee <1000 && cost > 0 && cost < 1000){
                     SupplyItem newSupplyItem = new SupplyItem();
@@ -1879,8 +1901,7 @@ public abstract class Main {
         }
    
     }
-    
-    
+  
     //------------------------------------------------------------------------------------
     private static void poMenu(){
         int choice = 0;
