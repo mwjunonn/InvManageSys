@@ -1629,9 +1629,16 @@ public abstract class Main {
 //            InventoryUI ui = new InventoryUI(controller);
 //            ui.showSupplyItemTable();
     
-            for (int i = 0; i < supplyItems.size(); i++) {
+            System.out.println();
+            System.out.println("Supply Item: ");
+            System.out.println("------------------------------------------------------------------------------------------");
+            System.out.printf("| %-2s | %-11s | %-10s | %-20s | %-16s | %-12s |\n", "No","Supplier ID", "Item ID", "Item Name" ,"Shipping Fee(RM)", "Cost(RM)");
+            System.out.println("------------------------------------------------------------------------------------------");
+            
+    
+            for (int i = 1; i < supplyItems.size(); i++) {
                 SupplyItem supplyItem = supplyItems.get(i);
-                System.out.printf("| %-2d |", i + 1);
+                System.out.printf("| %-2d |", i);
                 System.out.println(supplyItem.toString2());
                 System.out.println("------------------------------------------------------------------------------------------");
             }
