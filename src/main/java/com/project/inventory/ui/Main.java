@@ -209,8 +209,16 @@ public abstract class Main {
                 System.out.println("Position: ");
                 System.out.println("1. Manager");
                 System.out.println("2. Inventory Admin");
-                System.out.print("Selection: ");
-                selection = scan.nextInt();
+                while(true){
+                    System.out.print("Selection: ");
+                    try{
+                        selection = scan.nextInt();
+                        break;
+                    }catch(InputMismatchException ex){
+                        System.out.println("Please select by enter a integer.");
+                        scan.next();
+                    }
+                }
                 scan.nextLine();
                 switch(selection){
                     case 1:
@@ -239,8 +247,17 @@ public abstract class Main {
             confirmPassword = scan.nextLine();
             while(!(confirmPassword.equals(password))){
                 System.out.println("Your password isn't match. Try again");
-                System.out.print("Password: ");
-                password = scan.nextLine();
+                valid = false;
+                while(!valid){
+                    System.out.print("Create password: ");
+                    password = scan.nextLine();
+                    try{
+                        User.passwordValidation(password);
+                        valid = true;
+                    }catch(IllegalArgumentException ex){
+                        System.out.println(ex.getMessage());
+                    }
+                }
                 System.out.print("Confirm password: ");
                 confirmPassword = scan.nextLine();
             }
