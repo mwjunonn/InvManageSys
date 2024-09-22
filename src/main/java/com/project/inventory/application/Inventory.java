@@ -1,6 +1,6 @@
 package com.project.inventory.application;
 
-import com.project.inventory.dao.Database;
+import com.project.inventory.dao.InventoryDAOImpl;
 
 import java.util.*;
 
@@ -11,11 +11,10 @@ public class Inventory implements Runnable{
     private ArrayList<Item> itemList = new ArrayList<>();
     private HashMap<String, Integer> itemNameWIthIndex= new HashMap<>();
     private HashMap<String, Integer> itemIdWithIndex = new HashMap<>();
-    private Database db = new Database("inventory");
     private static Inventory inventory = new Inventory();
 
     private Inventory() {
-        run();
+        restartInventory();
     }
 
     public ArrayList<Object> getItemListWithColumns() {
@@ -23,7 +22,6 @@ public class Inventory implements Runnable{
         obj.addFirst(new String[]{
                "Item Name",
                 "Item Type",
-                "Latest Price",
                 "Item quantity"
         });
         return obj;
@@ -35,39 +33,13 @@ public class Inventory implements Runnable{
 
     public void restartInventory() {
         closeInventory();
-        HashMap<String, Integer> attributeIndex = new HashMap<>();
-        db.readTable(new String[]{Database.all}, new Object[][]{{"status", Boolean.TRUE}});
-        ArrayList<ArrayList<Object>> database = db.getObjResult();
-        for (int i = 0; i < database.getFirst().size(); i++) {
-            attributeIndex.put((String) database.getFirst().get(i), i);
+        InventoryDAOImpl inventoryDAO = new InventoryDAOImpl();
+        itemList = inventoryDAO.getAllInventory(Boolean.TRUE);
+        for (int i = 0; i < itemList.size(); i++) {
+            itemNameWIthIndex.put(itemList.get(i).getItemName(), i);
+            itemIdWithIndex.put(itemList.get(i).getItemId(), i);
         }
-        for (int i = 1; i < database.size(); i++) {
-            ArrayList<Object> row = database.get(i);
-            itemNameWIthIndex.put((String) row.get(attributeIndex.get("item_name")), i - 1);
-            itemIdWithIndex.put((String) row.get(attributeIndex.get("item_id")), i - 1);
-            itemList.add(new Item((String) row.get(attributeIndex.get("item_id")),
-                    (String) row.get(attributeIndex.get("item_name")),
-                    (String) row.get(attributeIndex.get("item_type")),
-                    (Double) row.get(attributeIndex.get("quantity")),
-                    (Double) row.get(attributeIndex.get("cost")),
-                    (Double) row.get(attributeIndex.get("per_unit")),
-                    (String) row.get(attributeIndex.get("unit"))
-            ));
-        }
-
-//        for (int i = 1; i < database.size(); i++) {
-//            String[] value =  database.get(i).split(Database.delimiter);
-//            if(value[indexOfType].equals("Frozen"))
-//                itemList.add(new FrozenItem(value[indexOfName]));
-//            else if (value[indexOfType].equals("Dry")) {
-//                itemList.add(new DryItem(value[indexOfName]));
-//            }else{
-//                itemList.add(new Item(value[indexOfName]));
-//            }
-//        }
     }
-
-
 
     public boolean addInventory(Item item) {
         if (item != null) {
@@ -95,10 +67,10 @@ public class Inventory implements Runnable{
             return itemList.get(index);
     }
 
-    public Item getItem(String itemName) {
-        Integer index = itemNameWIthIndex.get(itemName);
-        if(itemName != null && index != null) {
-            if(! itemName.equalsIgnoreCase("null") && ! itemList.isEmpty())
+    public Item getItem(String itemId) {
+        Integer index = itemIdWithIndex.get(itemId);
+        if(itemId != null && index != null) {
+            if(! itemId.equalsIgnoreCase("null") && ! itemList.isEmpty())
                 return getItem(index);
         }
         return new Item();
@@ -117,23 +89,21 @@ public class Inventory implements Runnable{
         itemList.clear();
     }
 
-    public boolean checkNameUnique(String itemName){
+    public Item checkNameUnique(String itemName){
         if(itemNameWIthIndex.containsKey(itemName)) //If this item name is contain in the HashMap, means it is not unique
-            return false;
+            return getItem(itemNameWIthIndex.get(itemName));
         for(String str : itemNameWIthIndex.keySet()){
             if(itemName.equalsIgnoreCase(str)) {
                 itemNameWIthIndex.put(itemName, itemNameWIthIndex.get(str)); //add a different case to the hashmap but point to the same
-                return false;
+                return getItem(itemNameWIthIndex.get(str));
             }
         }
-        return true;
+        return null;
     }
-
 
     public static Inventory getInstance(){
         return inventory;
     }
-
 
     @Override
     public void run() {

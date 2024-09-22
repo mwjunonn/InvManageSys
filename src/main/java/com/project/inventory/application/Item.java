@@ -1,26 +1,25 @@
 package com.project.inventory.application;
 
 
-import com.project.inventory.dao.Database;
-import com.project.inventory.dao.DatabaseThread;
+import com.project.inventory.dao.InventoryDAO;
+import com.project.inventory.dao.InventoryDAOImpl;
+
 import java.util.InputMismatchException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Item{
+public class Item implements Cloneable{
     private String itemId ="null", itemName, itemType, itemUnit;
-    private static final Database db = new Database("inventory");
-    private double latestPrice, quantity, per_unit;
+    private double quantity, per_unit;
 
 
     public Item(){
     }
 
-    public Item(String itemName, String itemType, String itemUnit, double latestPrice, double per_unit, double quantity) {
+    public Item(String itemName, String itemType, String itemUnit, double per_unit, double quantity) {
         this.itemName =  checkItemName(itemName) ? itemName : "null";
         this.itemType = itemType;
         this.quantity = quantity;
-        this.latestPrice = latestPrice;
         this.per_unit = per_unit;
         this.itemUnit = itemUnit;
         this.itemId = generateID();
@@ -32,7 +31,6 @@ public class Item{
         this.itemName =  checkItemName(itemName) ? itemName : "null";
         this.itemType = itemType;
         this.quantity = quantity;
-        this.latestPrice = latestPrice;
         this.per_unit = per_unit;
         this.itemUnit = itemUnit;
         create();
@@ -69,70 +67,50 @@ public class Item{
             return String.format("%d%s",(int)per_unit, itemUnit);
     }
 
-    public double getLatestPrice() {
-        return latestPrice;
-    }
-
     //Setter
-    public boolean setQuantity(double quantity) {
+    public void setQuantity(double quantity) {
         this.quantity = quantity;
-        return modifyColumn("quantity", quantity);
+        modifyColumn("quantity", quantity);
     }
 
-    public boolean setItemType(String type){
+    public void setItemType(String type){
         this.itemType = type;
-        return modifyColumn("item_type", type);
+        modifyColumn("item_type", type);
     }
 
-    public boolean setItemUnit(double per_unit, String unit){
+    public void setItemUnit(double per_unit, String unit){
         this.per_unit = per_unit;
         this.itemUnit = unit;
-        return modifyColumn(new Object[][]{
+        modifyColumn(new Object[][]{
                 {"unit", unit},
                 {"per_unit", per_unit},
         });
     }
 
-    public boolean setLatestPrice(double price){
-        latestPrice = price;
-        return modifyColumn("cost", price);
-    }
-
-    public boolean setItemName(String itemName) {
+    public void setItemName(String itemName) {
         if (checkItemName(itemName)) {
             this.itemName = itemName;
-            return modifyColumn("item_name", itemName);
-        }else
-            return false;
+            modifyColumn("item_name", itemName);
+        }
     }
 
     private boolean checkItemName(String itemName){
         return !(itemName.isEmpty() || itemName.equals("null"));
     }
 
-    private boolean modifyColumn(String columnName ,Object value){
-        return modifyColumn(new Object[][]{{columnName, value}});
+    private void modifyColumn(String columnName ,Object value){
+        modifyColumn(new Object[][]{{columnName, value}});
     }
 
-    private boolean modifyColumn(Object[][] columnNameWIthValue){
-        DatabaseThread dbb = new DatabaseThread("inventory", DatabaseThread.TypeOfQuery.UPDATE);
-        dbb.updateTable(
-                columnNameWIthValue,
-                new Object[][]{
-                {"item_id", itemId}
-        });
-        dbb.start();
-        return true;
+    private void modifyColumn(Object[][] columnNameWIthValue){
+        InventoryDAO inventoryDAO = new InventoryDAOImpl();
+        inventoryDAO.updateInventory(columnNameWIthValue, itemId);
     }
 
-    public boolean delete(){
+    public void delete(){
         Inventory inventory = Inventory.getInstance();
-        if(modifyColumn("status", 0)){
-            inventory.restartInventory();
-            return true;
-        }else{
-            return false;
-        }
+        modifyColumn("status", 0);
+        Thread.startVirtualThread(inventory);
     }
 
     public String generateID(){
@@ -145,16 +123,18 @@ public class Item{
     }
 
     private boolean checkDatabase(){
-        db.readTable(new String[]{"item_id"}, new String[][]{{"item_id", itemId}});
-        return db.getResult().size() != 1; //if 1 is the column name only
+        InventoryDAO inventoryDAO = new InventoryDAOImpl();
+        return inventoryDAO.selectById(itemId).size() != 1; //if 1 is the column name only
     }
 
-    private void create() {
+    private void create(){
+        try{
         if (!checkDatabase()) {
-            DatabaseThread dbb = new DatabaseThread("inventory", DatabaseThread.TypeOfQuery.INSERT);
-            dbb.insertTable(new String[]{"item_id", "item_name", "item_type", "quantity", "cost", "per_unit", "unit"},
-                    new String[]{itemId, itemName, itemType, String.valueOf(quantity), String.valueOf(latestPrice), String.valueOf(per_unit), itemUnit});
-            dbb.start();
+            InventoryDAO inventoryDAO = new InventoryDAOImpl();
+            inventoryDAO.addItem((Item)this.clone());
+        }} catch (CloneNotSupportedException e) {
+            // this shouldn't happen, since we are Cloneable
+            System.err.println(e.getMessage());
         }
     }
 
@@ -173,13 +153,13 @@ public class Item{
     @Override
     public String toString() {
         if(quantity % 1 != 0 && per_unit % 1 != 0) //Two is double
-            return String.format("%s\t%s\tRM%.2f\t%.2f/%.2f%s", itemName, itemType, latestPrice,quantity, per_unit, itemUnit);
+            return String.format("%s\t%s\t%.2f/%.2f%s", itemName, itemType, quantity, per_unit, itemUnit);
         else if(per_unit % 1 != 0) //Quantity is integer, per_unit is double
-            return String.format("%s\t%s\tRM%.2f\t%d/%.2f%s", itemName, itemType, latestPrice, (int)quantity, per_unit, itemUnit);
+            return String.format("%s\t%s\t%d/%.2f%s", itemName, itemType, (int)quantity, per_unit, itemUnit);
         else if(quantity % 1 != 0) //Quantity is double, per_unit is integer
-            return String.format("%s\t%s\tRM%.2f\t%.2f/%d%s", itemName, itemType,latestPrice, quantity, (int)per_unit, itemUnit);
+            return String.format("%s\t%s\t%.2f/%d%s", itemName, itemType, quantity, (int)per_unit, itemUnit);
         else //Two is integer
-            return String.format("%s\t%s\tRM%.2f\t%d/%d%s", itemName, itemType,latestPrice, (int)quantity, (int)per_unit, itemUnit);
+            return String.format("%s\t%s\t%d/%d%s", itemName, itemType, (int)quantity, (int)per_unit, itemUnit);
     }
 
     @Override
@@ -189,7 +169,7 @@ public class Item{
         if (o == null || getClass() != o.getClass())
             return false;
         Item item = (Item) o;
-        return latestPrice == item.latestPrice && quantity == item.quantity && per_unit == item.per_unit && itemId.equals(item.itemId) && itemName.equals(item.itemName) && itemType.equals(item.itemType) && itemUnit.equals(item.itemUnit);
+        return quantity == item.quantity && per_unit == item.per_unit && itemId.equals(item.itemId) && itemName.equals(item.itemName) && itemType.equals(item.itemType) && itemUnit.equals(item.itemUnit);
     }
 
     public enum itemTypeConstant{

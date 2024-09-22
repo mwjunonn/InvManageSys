@@ -43,7 +43,7 @@ public class InventoryUI extends JFrame {
         dialog.setLocationRelativeTo(null);
     }
 
-    public void showInventoryListGui() {
+    public void showInventoryListWithSearch() {
         JTextField inventory_search = new JTextField(16);
         inventory_search.setEditable(true);
         inventory_search.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
@@ -89,17 +89,8 @@ public class InventoryUI extends JFrame {
             }
         });
         pane.add(inventory_search, BorderLayout.NORTH);
-        tableInit();
-        pane.add(scrollPane, BorderLayout.CENTER);
-        dialog.setContentPane(pane);
-        initDialog();
-    }
-
-
-    private void tableInit() {
-        inventory_list = controller.getTable();
-        inventory_list.setFont(new Font("MiSans", Font.PLAIN, 12));
-        inventory_list.setRowHeight(32);
+        dialog.setTitle("Select item");
+        showTable();
         inventory_list.addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {
                 int rowSelected = inventory_list.getSelectedRow();
@@ -108,6 +99,37 @@ public class InventoryUI extends JFrame {
                 dialog.dispose();
             }
         });
+    }
+
+    private void showTable(){
+        tableInit();
+        pane.add(scrollPane, BorderLayout.CENTER);
+        dialog.setContentPane(pane);
+        initDialog();
+    }
+
+    public void showSupplyItemTable(){
+        dialog.setTitle("Select supplier with the item");
+        showTable();
+        inventory_list.addMouseListener(new MouseAdapter() {
+            public void mouseReleased(MouseEvent e) {
+                int rowSelected = inventory_list.getSelectedRow();
+                controller.setRowSelectedIndex(rowSelected);
+                dialog.setVisible(false);
+                dialog.dispose();
+            }
+        });
+    }
+    public void showCurrentStockList(){
+        dialog.setTitle("Current stock list");
+        showTable();
+    }
+
+
+    private void tableInit() {
+        inventory_list = controller.getTable();
+        inventory_list.setFont(new Font("MiSans", Font.PLAIN, 12));
+        inventory_list.setRowHeight(32);
         inventory_list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         this.scrollPane = new JScrollPane(inventory_list);
     }

@@ -47,6 +47,7 @@ public class DatabaseThread extends Thread{
 
     public void readTable(String[] columnNames) {
         this.columnNames = columnNames;
+        this.success = false;
     }
 
     public void updateTable(Object[][] columnNamesWithValues, Object[][] condition){
@@ -61,6 +62,7 @@ public class DatabaseThread extends Thread{
 
     public void deleteTable(Object[][] condition){
         this.condition = condition;
+        this.success = false;
     }
 
     @Override
@@ -90,17 +92,17 @@ public class DatabaseThread extends Thread{
                break;
            case INSERT:
                if(values != null && columnNames != null){
-                   database.insertTable(columnNames, values);
+                   success = database.insertTable(columnNames, values);
                }
                break;
            case UPDATE:
                if (columnNamesWithValues != null && condition != null) {
-                   database.updateTable(columnNamesWithValues, condition);
+                   success = database.updateTable(columnNamesWithValues, condition);
                }
                break;
            case DELETE:
                if(condition!= null) {
-                   database.deleteRecord(condition);
+                  success =  database.deleteRecord(condition);
                }
                break;
        }

@@ -3,6 +3,12 @@ package com.project.inventory.ui;
 import com.project.inventory.application.*;
 import com.project.inventory.dao.Database;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.OutputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -116,7 +122,7 @@ public abstract class Main {
                             inventoryMenu();
                             break;
                         case 2:     //Current Stock Report
-                            selectInventory();
+                            currentStockList();
                             break;
                         case 3:     //Supplier Menu
                             supplierMenu();
@@ -142,8 +148,8 @@ public abstract class Main {
                             break;
                     }
             } else if (user.permission().equals(User.Permission.ADMIN)) { //Admin
-                ArrayList<PurchaseOrder> purchaseOrders = PurchaseOrder.getAllPO(); 
-                ArrayList<Order> orders = Order.getAllOrder(); 
+                ArrayList<PurchaseOrder> purchaseOrders = PurchaseOrder.getAllPO();
+                ArrayList<Order> orders = Order.getAllOrder();
                 switch (decision) {
                     case 1:     //Restock inventory\
                         generatePurchaseOrder(userArr, purchaseOrders, orders);
@@ -197,7 +203,7 @@ public abstract class Main {
             while(!valid){
                 System.out.print("Enter name: ");
                 name = scan.nextLine();
-                
+
                 try{
                     User.nameValidation(name);
                     valid = true;
@@ -538,28 +544,6 @@ public abstract class Main {
         item.setQuantity(item.getQuantity() + restockQuantity);
     }
 
-/*   Deprecated : Replace with selectInventory();
-    private static int chooseItem() {
-        ArrayList<Item> item = inventory.getItemList();
-        int input = 0;
-        do {
-            System.out.println("Choose your item with the number.");
-            for (int i = 0; i < item.size(); i++) {
-                System.out.printf("%d. %s\n", i + 1, item.get(i).getItemName());
-            }
-            if(scan.hasNextInt()) {
-                input = scan.nextInt();
-            }else{
-                input = item.size() + 1;
-            }
-            if(input > item.size()){
-                System.out.println("Error input! Please try again.");
-            }
-        } while (input < 0 || input > item.size());
-        return input;
-    }
-*/
-
     private static void inventoryOperation(int index) {
         System.out.println("What you would like to do ?");
         String[] option = new String[]{
@@ -588,7 +572,6 @@ public abstract class Main {
         String[] itemDataName = new String[]{
                 "Item name",
                 "Item type",
-                "Price",
                 "Quantity",
                 "Unit",
                 "Exit"
@@ -596,9 +579,8 @@ public abstract class Main {
         String[] itemData = new String[]{
                 item.getItemName(),
                 item.getItemType(),
-                String.valueOf(item.getLatestPrice()),
                 String.valueOf(item.getQuantity()),
-                item.getItemType()
+                item.getItemUnit()
         };
         showItemDetails(itemDataName, itemData);
         //Methods should be start at here
@@ -615,37 +597,30 @@ public abstract class Main {
                 System.out.print("New unit (Eg : 1kg)= ");
             } else {
                 System.out.print("New " + itemDataName[input] + " = ");
-                if (itemDataName[input].equals("Price"))
-                    System.out.print("RM ");
             }
-            strInput = scan.nextLine();
             switch (itemDataName[input]) {
                 case "Item name":
-                    if(inventory.checkNameUnique(strInput))
-                        validation = item.setItemName(strInput);
+                    strInput = scan.nextLine();
+                    Item tempItem = inventory.checkNameUnique(strInput);
+                    if(tempItem == null){
+                        item.setItemName(strInput);
+                        }
                     else{
                         System.out.println("Same item already exist! This is the item details...");
-                        showItemDetails(inventory.getItem(strInput));
+                        showItemDetails(tempItem);
                         validation = false;
                     }
                     break;
 
                 case "Item type":
-                    validation = item.setItemType(strInput);
+                    String itemType = promptItemType();
+                    item.setItemType(itemType);
                     break;
 
                 case "Quantity":
+                    strInput = scan.nextLine();
                     try {
-                        validation = item.setQuantity(Double.parseDouble(strInput));
-                    } catch (NumberFormatException e) {
-                        System.out.println("Input is not number");
-                        validation = false;
-                    }
-                    break;
-
-                case "Price":
-                    try {
-                        validation = item.setLatestPrice(Double.parseDouble(strInput));
+                        item.setQuantity(Double.parseDouble(strInput));
                     } catch (NumberFormatException e) {
                         System.out.println("Input is not number");
                         validation = false;
@@ -653,6 +628,7 @@ public abstract class Main {
                     break;
 
                 case "Unit":
+                    strInput = scan.nextLine();
                     validation = updateUnit(index, strInput);
                     break;
             }
@@ -673,7 +649,8 @@ public abstract class Main {
                 if(adjustQuantity != 0.0)
                     inventory.getItem(index).setQuantity(adjustQuantity);
             }
-            return inventory.getItem(index).setItemUnit(Double.parseDouble(subStr[0]), subStr[1]);
+            inventory.getItem(index).setItemUnit(Double.parseDouble(subStr[0]), subStr[1]);
+            return true;
     }
 
     public static double promptAdjustQuantity(int index, double per_unit) {
@@ -707,7 +684,6 @@ public abstract class Main {
         showItemDetails(new String[]{
                 item.getItemName(),
                 item.getItemType(),
-                String.valueOf(item.getLatestPrice()),
                 String.valueOf(item.getQuantity()),
                 item.getItemUnit()
         });
@@ -721,17 +697,16 @@ public abstract class Main {
 
     public static int selectInventory(){
         Inventory inventory = Inventory.getInstance();
-        InventoryUIController controller = new InventoryUIController(inventory.getItemListWithColumns());
+        InventoryUIController controller = new InventoryUIController(InventoryUIController.TableMode.INVENTORY);
         InventoryUI ui = new InventoryUI(controller);
-        ui.showInventoryListGui();
-        return controller.getInventorySelectedIndex();
+        ui.showInventoryListWithSearch();
+        return controller.getSelectedIndex();
     }
 
     private static void showItemDetails(Item item){
         showItemDetails(new String[]{
                 item.getItemName(),
                 item.getItemType(),
-                String.valueOf(item.getLatestPrice()),
                 String.valueOf(item.getQuantity()),
                 item.getItemUnit()
         });
@@ -741,15 +716,28 @@ public abstract class Main {
         String[] itemDataName = new String[]{
                 "Item name ",
                 "Item type",
-                "Price",
                 "Quantity",
                 "Unit"
         };
         showItemDetails(itemDataName, itemData);
     }
 
+    private static String promptItemType(){
+        ArrayList<String> tempOption = new ArrayList<>();
+        for (Item.itemTypeConstant i : Item.itemTypeConstant.values()) {
+            tempOption.add(i.getValue());
+        }
+        tempOption.add("Other");
+        int option = getMenuInput(tempOption.toArray(new String[0]));
+        if(option == tempOption.size()){ // Means other
+            System.out.print("Please type the item type: ");
+            return scan.nextLine();
+        }else{
+            return tempOption.get(--option);
+        }
+    }
+
     private static void showItemDetails(String[] itemDataName, String[] itemData){
-        Inventory inventory = Inventory.getInstance();
         for (int i = 0; i < itemData.length; i++)
             System.out.printf("%s: %s\n", itemDataName[i], itemData[i]);
     }
@@ -760,38 +748,14 @@ public abstract class Main {
         System.out.println("Please provide the item detail you want to create...");
         System.out.print("Item name : ");
         String itemName = scan.nextLine();
-        if(!inventory.checkNameUnique(itemName)){ //If it is not unique, means it have already
+        Item item = inventory.checkNameUnique(itemName);
+        if(item != null){ //If it is not unique, means it have already
             System.out.println("Item has been created before! This is the item detail before created..");
-            showItemDetails(inventory.getItem(itemName));
+            showItemDetails(item);
             return;
         }
-        System.out.println("Item type: ");
-        ArrayList<String> tempOption = new ArrayList<>();
-        for (Item.itemTypeConstant i : Item.itemTypeConstant.values()) {
-            tempOption.add(i.getValue());
-        }
-        tempOption.add("Other");
-        String itemType;
-        int option = getMenuInput(tempOption.toArray(new String[0]));
-        if(option == Item.itemTypeConstant.values().length){ // Means other
-            System.out.print("Please type the item type: ");
-            itemType = scan.nextLine();
-        }else{
-            itemType = tempOption.get(--option);
-        }
-        double price = 0;
-        do {
-            System.out.print("Latest price =  RM ");
-            if (scan.hasNextDouble()) {
-                price = scan.nextDouble();
-                validation = true;
-                scan.nextLine(); //Clear the buffer
-            } else {
-                scan.next();
-                System.out.println("Input are not in number...");
-                validation = false;
-            }
-        }while(!validation);
+        System.out.println("Item type :");
+        String itemType = promptItemType();
         String[] perUnitAndUnit = new String[0];
         String unit;
         do {
@@ -818,10 +782,23 @@ public abstract class Main {
             validation = false;
         }
         }while(!validation);
-        if(inventory.addInventory(new Item(itemName, itemType, perUnitAndUnit[1], price, Double.parseDouble(perUnitAndUnit[0]), quantity))){
+        if(inventory.addInventory(new Item(itemName, itemType, perUnitAndUnit[1], Double.parseDouble(perUnitAndUnit[0]), quantity))){
             System.out.println("Item created successfully...");
         }else{
             System.out.println("Something went wrong");
+        }
+    }
+
+    private static void currentStockList(){
+        InventoryUI ui = new InventoryUI(new InventoryUIController(InventoryUIController.TableMode.INVENTORY));
+        ui.showCurrentStockList();
+        System.out.println("Do you want to save to file?");
+        int input = getMenuInput(new String[]{
+                "Save to file",
+                "Exit"
+        });
+        if(input == 1){
+            InventoryFileIO io = new InventoryFileIO();
         }
     }
 
@@ -1111,7 +1088,7 @@ public abstract class Main {
 
                             System.out.println("Please Enter The Information: ");
                             System.out.println("Item ID: " + item.getItemId());
-                            
+
                             try{
                                 System.out.print("Cost: RM");
                                 cost = Double.parseDouble(scan.nextLine());
@@ -1596,12 +1573,9 @@ public abstract class Main {
         if(supplyItems.isEmpty()){
             System.out.println("No Supply Item Data Found.");
         }else{
-            System.out.println();
-            System.out.println("Supply Item: ");
-            System.out.println("------------------------------------------------------------------------------------------");
-            System.out.printf("| %-2s | %-11s | %-10s | %-20s | %-16s | %-12s |\n", "No","Supplier ID", "Item ID", "Item Name" ,"Shipping Fee(RM)", "Cost(RM)");
-            System.out.println("------------------------------------------------------------------------------------------");
-            
+            InventoryUIController controller = new InventoryUIController(InventoryUIController.TableMode.INVENTORY_WITH_SUPPLIER);
+            InventoryUI ui = new InventoryUI(controller);
+            ui.showSupplyItemTable();
     
             for (int i = 0; i < supplyItems.size(); i++) {
                 SupplyItem supplyItem = supplyItems.get(i);
@@ -1660,7 +1634,7 @@ public abstract class Main {
                                 }
                                 switch(options){
                                     case 1:
-                                        
+
                                         try{
                                             System.out.print("Enter New Shipping Fee: RM");
                                             newValue = Double.parseDouble(scan.nextLine());
@@ -1735,13 +1709,13 @@ public abstract class Main {
                                                     System.out.println("Error: Your Input Choice Should Be An Integer!");
                                                 }
                                                 switch(options){
-                                                    case 1: 
+                                                    case 1:
                                                         supplyItemInfo.setCost(newValue);
                                                         if(supplyItemManager.updateData("cost", supplierId, item.getItemId(), cost))
-                                                            System.out.println("New Data Updated!");                                                     
+                                                            System.out.println("New Data Updated!");
                                                         else
                                                             System.out.println("Failed to Update New Data!");
-                                                        
+
                                                         break;
                                                     case 2:
                                                         System.out.println("Modification has been canceled. No changes were made.");
@@ -1936,7 +1910,7 @@ public abstract class Main {
         }
    
     }
-  
+
     //------------------------------------------------------------------------------------
         private static void poMenu(ArrayList<PurchaseOrder> purchaseOrders, ArrayList<Order> orders){
         int choice = 0;
@@ -1987,16 +1961,13 @@ public abstract class Main {
             double purchaseOrderTotalCost = 0.0;
             Item item;
             do {
-                InventoryUIController controller = new InventoryUIController(inventory.getItemListWithColumns());
-                    InventoryUI ui = new InventoryUI(controller);
-                    ui.showInventoryListGui();
-                    int index = controller.getInventorySelectedIndex();
+                    int index = selectInventory();
                     if(index == -1)
                         break;
                     item = inventory.getItem(index);
-                    
+
                     System.out.print("Enter quantity to add: ");
-                    int quantityToAdd;                                          
+                    int quantityToAdd;
                     try {
                         quantityToAdd = Integer.parseInt(scan.nextLine());
                     } catch (NumberFormatException e) {
@@ -2009,10 +1980,10 @@ public abstract class Main {
                         return;
                     }
 
-                    supplierId = Order.getSupplierIdbyItemId(item.getItemId());
+                    supplierId = "dffsd";//getSupplierIdbyItemId(item.getItemId());
 
-                    totalCost = (Order.getItemCost(item.getItemId()) * quantityToAdd) + (Order.getShippingFee(item.getItemId()) * quantityToAdd) + Order.getImportDuty(supplierId);
-                    purchaseOrderTotalCost += totalCost;
+                    totalCost = 1;//(getItemCost(item.getItemId()) * quantityToAdd) + (getShippingFee(item.getItemId()) * quantityToAdd) + getImportDuty(supplierId);
+                   purchaseOrderTotalCost += totalCost;
 
                     //po.updateTotalCost(orderNo, purchaseOrderTotalCost);
                     // Formula (quantity * price) + (shipping fee per kg * quantity) + import fee
@@ -2026,7 +1997,7 @@ public abstract class Main {
                     System.out.printf("\nTotal cost for this order: RM%.2f\n", totalCost);
                     order = new Order(item.getItemId(), purchaseorder.getOrderNo(), quantityToAdd, supplierId, totalCost);
                     orders.add(order);
-                    
+
                     System.out.print("Do you want to order more? (Y/N)\n>");
                     choice = scan.nextLine().toLowerCase();  
 
@@ -2048,7 +2019,7 @@ public abstract class Main {
              
             displayOrderSearch(orders, purchaseorder.getOrderNo());
             System.out.println("Total Cost: RM" + purchaseorder.getTotalCost());
-            
+
             System.out.print("Would you like to pay now? (Y/N)\n>");
             String userResponse = scan.nextLine().trim().toLowerCase();
 
@@ -2081,13 +2052,13 @@ public abstract class Main {
 
                 try {
                     choice = scan.nextInt();
-                    break; 
+                    break;
                 } catch (InputMismatchException e) {
                     System.out.println("Invalid input. Please enter a valid integer.");
-                    scan.nextLine(); 
+                    scan.nextLine();
                 }
             }
-            
+
             switch(choice){
                 case 1:
                     displayPO(purchaseOrders);
@@ -2127,7 +2098,7 @@ public abstract class Main {
         
         private static void displayPOSearch(ArrayList<PurchaseOrder> purchaseOrders, String orderNo){
             PurchaseOrder purchaseorder = PurchaseOrder.findPurchaseOrder(purchaseOrders, orderNo);
-            if (purchaseorder == null) {  
+            if (purchaseorder == null) {
                 System.out.println("Purchase order with Order No " + orderNo + " not found.");
                 return;
             }
@@ -2170,7 +2141,7 @@ public abstract class Main {
 
                 try {
                     choice = scan.nextInt();
-                    break; 
+                    break;
                 } catch (InputMismatchException e) {
                     System.out.println("Invalid input. Please enter a valid integer.");
                     scan.nextLine();
@@ -2195,7 +2166,7 @@ public abstract class Main {
                     }
                     break;
                 case 2:
-                    updateStatus(purchaseOrders,orderNo, orders); 
+                    updateStatus(purchaseOrders,orderNo, orders);
                     return;
                 case 3:
                     System.out.print("Enter new total cost: ");
@@ -2230,7 +2201,7 @@ public abstract class Main {
                         case 2: purchaseorder.setStatus("Unpaid"); break;
                         case 3: purchaseorder.setStatus("Pending Shipping"); break;
                         case 4: purchaseorder.setStatus("Out For Delivery"); break;
-                        case 5 :               
+                        case 5 :
                             if (!purchaseorder.getStatus().equals("Delivered")) {
                                 purchaseorder.setStatus("Delivered");
                                 success = updateInventoryQuantity(orderNo, orders);
@@ -2273,7 +2244,7 @@ public abstract class Main {
 
         
         private static void updateStatus(ArrayList<PurchaseOrder> purchaseOrders, String orderNo, ArrayList<Order> orders) {
-            PurchaseOrder purchaseorder = PurchaseOrder.findPurchaseOrder(purchaseOrders, orderNo);            
+            PurchaseOrder purchaseorder = PurchaseOrder.findPurchaseOrder(purchaseOrders, orderNo);
             int choice = 0;
             while (true) {
                 System.out.println("1. Pending Payment \n2. Unpaid \n3. Pending Shipping \n4. Out for delivery\n5. Delivered\n6. Back");
@@ -2284,8 +2255,8 @@ public abstract class Main {
                     switch (choice) {
                         case 1: purchaseorder.setStatus("Pending Payment");break;
                         case 2: purchaseorder.setStatus("Unpaid"); break;
-                        case 3: purchaseorder.setStatus("Pending Shipping"); break;                            
-                        case 4: purchaseorder.setStatus("Out For Delivery"); break;                    
+                        case 3: purchaseorder.setStatus("Pending Shipping"); break;
+                        case 4: purchaseorder.setStatus("Out For Delivery"); break;
                         case 5:
                             purchaseorder.setStatus("Delivered");
                             if(!Order.getStatus(orderNo).equals("Delivered")){
@@ -2330,11 +2301,11 @@ public abstract class Main {
             String userInput;
 
             do {
-                displayPO(purchaseOrders);  
+                displayPO(purchaseOrders);
                 System.out.print("Enter the Order No to delete: ");
                 String orderNo = scan.nextLine().trim();
 
-                if (!orderNo.matches("OD\\d{4}")) { 
+                if (!orderNo.matches("OD\\d{4}")) {
                     System.out.println("Invalid order number format. It should start with 'OD' followed by exactly 4 digits (e.g., OD0001).");
                 } else {
                     System.out.print("Are you sure you want to delete purchase order " + orderNo + "? (Y/N): ");
@@ -2455,7 +2426,7 @@ public abstract class Main {
                 }
             }while(choice != 4);
         }
-              
+
         private static void displayOrderMenu( ArrayList<Order> orders){
             int choice = 0;
             try{
@@ -2466,8 +2437,8 @@ public abstract class Main {
              }catch(NumberFormatException ex){
                  System.out.println("Error: Your Input Choice Should Be An Integer!");
              }
-            
-            
+
+
             switch(choice){
                 case 1:
                     displayOrders(orders);
@@ -2507,7 +2478,7 @@ public abstract class Main {
              ArrayList<Order> order = Order.getOrders(orders, orderNo);
             if (order.isEmpty()) {
                 System.out.println("No orders found for Order No " + orderNo + ".");
-            } 
+            }
             else {
                 System.out.println("--------------------------------------------------------------------------------------");
                 System.out.printf("| %-10s | %-15s | %-10s | %-20s | %-10s |\n", "Item Id", "Order No", "Quantity", "Supplier Id", "Total Cost (RM)");
@@ -2549,13 +2520,13 @@ public abstract class Main {
             int newQuantity = 0;
             boolean validInput;
             do {
-                validInput = true; 
+                validInput = true;
                 try {
                     System.out.print("Enter the new Quantity: ");
                     newQuantity = Integer.parseInt(scan.nextLine());
                 } catch (NumberFormatException ex) {
                     System.out.println("Error: Your input should be an integer!");
-                    validInput = false; 
+                    validInput = false;
                 }
             } while (!validInput);
             double newTotalCost = (newQuantity * Order.getItemCost(itemId)) + (newQuantity * Order.getShippingFee(itemId)) + Order.getImportDuty(Order.getSupplierIdbyItemId(itemId));
@@ -2620,22 +2591,22 @@ public abstract class Main {
             String orderNo, itemId, userInput, confirmation;
             do {
                 System.out.print("Enter Item ID for deletion: ");
-                itemId = scan.nextLine(); 
+                itemId = scan.nextLine();
                 if (!itemId.matches("I\\d{4}")) {
                 System.out.println("Invalid item ID format. It should start with 'I' followed by exactly 4 digits (e.g., I0001).");
                 return; 
                 }
-                
+
                 System.out.print("Enter Order No for deletion: ");
                 orderNo = scan.nextLine();
-                if (!orderNo.matches("OD\\d{4}")) { 
+                if (!orderNo.matches("OD\\d{4}")) {
                     System.out.println("Invalid order number format. It should start with 'OD' followed by exactly 4 digits (e.g., OD0001).");
-                    return; 
+                    return;
                 }
-                
+
                 System.out.print("Are you sure you want to delete item " + itemId + " for " + orderNo + "? (Y/N): ");
                 confirmation = scan.nextLine().trim().toLowerCase();
-                
+
                 if (confirmation.equals("y")) {
                     if(!Order.deleteOrder(orders, orderNo, itemId)){
                         System.out.println("Deletion Canceled");
@@ -2649,10 +2620,10 @@ public abstract class Main {
                 }
                 System.out.print("Do you want to continue delete order? (Y/N): ");
                 userInput = scan.nextLine().trim().toLowerCase();
-                
+
             }while(userInput.equals("y"));
         }
-        
+
         private static boolean updateInventoryQuantity(String orderNo, ArrayList<Order> orders) {
             ArrayList<Order> temporder = new ArrayList<>();
             for (Order order : orders) {

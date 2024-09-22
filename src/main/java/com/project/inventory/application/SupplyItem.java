@@ -1,7 +1,10 @@
 package com.project.inventory.application;
 import com.project.inventory.dao.Database;
 
+import java.text.Format;
 import java.util.ArrayList;
+import java.util.Formatter;
+import java.util.HashMap;
 
 /**
  *
@@ -12,9 +15,10 @@ public class SupplyItem {
     private double shippingFee, cost;
     private String itemName;
     public static int supplyItemNum = 0;
+    private HashMap<Integer, String> indexOfSIId;
     private static Database db = new Database("supplier_item");
 
-    
+
     
     
     //constructor
@@ -95,7 +99,11 @@ public class SupplyItem {
         db.readTable(columns, new Object[][]{}, additional);
         
         ArrayList<ArrayList<Object>> result = db.getObjResult();
-        
+        if(indexOfSIId == null)
+            indexOfSIId = new HashMap<>(result.size());
+        else
+            indexOfSIId.clear();
+
         for(int i =1; i < result.size();i++){
             ArrayList<Object> supplyItemData = result.get(i);
             
@@ -119,7 +127,7 @@ public class SupplyItem {
             );
             
             supplyItems.add(supplyItem);
-            
+            indexOfSIId.put(i - 1, supplyItemData.get(0).toString());
         }
 
         supplyItemNum = result.size() -1; 
@@ -140,7 +148,39 @@ public class SupplyItem {
         return null;
 
     }
-  
+
+    public ArrayList<Object> getSupplyItemWithColumn(){
+        ArrayList<SupplyItem> supplyItems = getAllSupplyItem();
+        ArrayList<Supplier> suppliers = (new Supplier()).getAllSupplierInfo();
+        ArrayList<Object> supplyItemData = new ArrayList<>(supplyItems.size() + 1);
+        supplyItemData.addFirst(new String[]{
+                "Item name",
+                "Supplier name",
+                "Cost",
+                "Shipping fees",
+        });
+        for(SupplyItem si : supplyItems){
+            Item item = Inventory.getInstance().getItem(si.getItemId());
+            Supplier supplier = null;
+            for(Supplier s : suppliers){
+                if(s.getSupplierId().equals(si.getSupplierId())){
+                    supplier = s;
+                }
+            }
+            if(supplier == null){
+                continue;
+            }
+            Object[] arr = new Object[]{
+                    item.getItemName(),
+                    supplier.getSupplierName(),
+                    si.getCost(),
+                    si.getShippingFee()
+            };
+            supplyItemData.add(arr);
+        }
+        return supplyItemData;
+    }
+
     public boolean writeData(SupplyItem supplyItem){
             
             if (isSupplierItemExists(supplyItem.getSupplierId(), supplyItem.getItemId())) {

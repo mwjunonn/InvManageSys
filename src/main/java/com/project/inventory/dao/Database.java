@@ -36,6 +36,8 @@ public class Database {
      * Try using another constructor that parameter is Table Name(String)
      */
     public Database() {
+        if(!success)
+            startDatabase();
     }
 
     public static void startDatabase(){
