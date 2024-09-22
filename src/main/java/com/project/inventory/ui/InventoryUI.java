@@ -90,7 +90,7 @@ public class InventoryUI extends JFrame {
         });
         pane.add(inventory_search, BorderLayout.NORTH);
         dialog.setTitle("Select item");
-        showTable();
+        tableInit();
         inventory_list.addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {
                 int rowSelected = inventory_list.getSelectedRow();
@@ -99,10 +99,10 @@ public class InventoryUI extends JFrame {
                 dialog.dispose();
             }
         });
+        showTable();
     }
 
     private void showTable(){
-        tableInit();
         pane.add(scrollPane, BorderLayout.CENTER);
         dialog.setContentPane(pane);
         initDialog();
@@ -110,7 +110,7 @@ public class InventoryUI extends JFrame {
 
     public void showSupplyItemTable(){
         dialog.setTitle("Select supplier with the item");
-        showTable();
+        tableInit();
         inventory_list.addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {
                 int rowSelected = inventory_list.getSelectedRow();
@@ -119,9 +119,11 @@ public class InventoryUI extends JFrame {
                 dialog.dispose();
             }
         });
+        showTable();
     }
     public void showCurrentStockList(){
         dialog.setTitle("Current stock list");
+        tableInit();
         showTable();
     }
 
