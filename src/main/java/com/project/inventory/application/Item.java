@@ -172,7 +172,7 @@ public class Item implements Cloneable{
         return quantity == item.quantity && per_unit == item.per_unit && itemId.equals(item.itemId) && itemName.equals(item.itemName) && itemType.equals(item.itemType) && itemUnit.equals(item.itemUnit);
     }
 
-    public enum itemTypeConstant{
+    public enum ItemTypeConstant {
         POWDER("Powder"),
         DRINKS("Drinks"),
         FRUIT("Fruit"),
@@ -180,7 +180,7 @@ public class Item implements Cloneable{
 
         private final String value;
 
-        itemTypeConstant(String value){
+        ItemTypeConstant(String value){
             this.value = value;
         }
 
