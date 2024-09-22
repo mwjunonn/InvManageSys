@@ -1689,14 +1689,14 @@ public abstract class Main {
                                         }
 
                                         break;
-                                    case 3:
+                                    case 3:                                    
                                         break;
                                     default:
                                         System.out.println("Invalid Options! Please Try Again...");
                                         break;
                                 }
 
-                            }while(options != 1 && options !=2);
+                            }while(options != 1 && options !=2 && options!= 3);
                         }else{
                             System.out.println("No Matching records found for Supplier's ID or Item's ID!");
                             System.out.println("You will now be exited from this function.");
