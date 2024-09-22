@@ -5,7 +5,8 @@ import java.util.ArrayList;
 
 public abstract class User {
     static Database db = new Database("user");
-    static int arrayCounter;
+    public static int arrayCounter = 0;
+    public static int currentUserLoginCounter = 0;
     
     protected static int userCount = 2300000;
     protected String user_id;
@@ -13,6 +14,15 @@ public abstract class User {
     protected String password;
     protected String email;
     protected String position;
+    
+    //Initialize use constructor
+    public User(String user_id, String name, String password, String email){
+        this.user_id = user_id;
+        this.name = name;
+        this.password = password;
+        this.email = email;
+        this.position = "";
+    }
     
     public User(String name, String password, String email){
         this.user_id = idToString();
@@ -31,8 +41,37 @@ public abstract class User {
         this("", "");
     }
     
+    //Current login user
+    public void getCurrentLoginUser(){
+        currentUserLoginCounter = arrayCounter;
+    }
+    
     //Permission?
     public abstract Permission permission();
+    
+    //Initialize object usage
+    public static ArrayList<User> initializeUser(){
+        ArrayList<User> user = new ArrayList<User>();
+        db.readTable(new String[]{"user_id"});  //get total column count, user_id != null
+        
+        String[] name = getAllName();
+        String[] position = getAllPosition();
+        String[] password = getAllPassword();
+        String[] email = getAllEmail();
+        String[] userID = getAllId();
+        int size = db.getResult().size() + 1;
+        
+        for (int i = 1; i < size; i++) {
+            if (position[i].equals("Manager")) {
+                user.add(new Manager(userID[i], name[i], password[i], email[i]));
+            }
+            if (position[i].equals("InventoryAdmin")) {
+                user.add(new InventoryAdmin(userID[i], name[i], password[i], email[i]));
+            }
+        }
+        
+        return user;
+    }
     
     //Verify Name
     public static void nameValidation(String name){
@@ -48,11 +87,11 @@ public abstract class User {
     }
     
     //Verify ID
-    public abstract boolean equals(Object obj);
+    public abstract boolean checkRoles(Object obj, ArrayList<User> userArr);
     
     //Verify Password
-    public boolean passwordValid(String password){
-        if (getAllPassword()[arrayCounter].equals(password)) {
+    public boolean passwordValid(String password, ArrayList<User> userArr){
+        if (userArr.get(arrayCounter).getPassword().equals(password)) {
             return true;
         }
         return false;
@@ -85,7 +124,7 @@ public abstract class User {
         setEmail(email);
     }
     
-    public String[] getAllId(){
+    protected static String[] getAllId(){
         String[] verifyId = {"user_id"};
         db.readTable(verifyId);
         ArrayList<String> list = db.getResult();
@@ -96,7 +135,7 @@ public abstract class User {
         return idList;
     }
     
-    public String[] getAllName(){
+    protected static String[] getAllName(){
         String[] tempName = {"name"};
         db.readTable(tempName);
         ArrayList<String> list = db.getResult();
@@ -107,7 +146,7 @@ public abstract class User {
         return nameList;
     }
     
-    public String[] getAllPosition(){
+    protected static String[] getAllPosition(){
         String[] tempPosition = {"position"};
         db.readTable(tempPosition);
         ArrayList<String> list = db.getResult();
@@ -118,7 +157,7 @@ public abstract class User {
         return positionList;
     }
     
-    public String[] getAllPassword(){
+    protected static String[] getAllPassword(){
         String[] tempPassword = {"password"};
         db.readTable(tempPassword);
         ArrayList<String> list = db.getResult();
@@ -129,7 +168,7 @@ public abstract class User {
         return passwordList;
     }
     
-    public String[] getAllEmail(){
+    protected static String[] getAllEmail(){
         String[] tempEmail = {"email"};
         db.readTable(tempEmail);
         ArrayList<String> list = db.getResult();
@@ -161,23 +200,24 @@ public abstract class User {
         return user_id;
     }
     
+    public String getPosition(){
+        return position;
+    }
+    
     public String getCurrentName(){
-        return getAllName()[arrayCounter];
+        return initializeUser().get(arrayCounter).getName();
     }
     
     public String getCurrentID(){
-        return getAllId()[arrayCounter];
+        return initializeUser().get(arrayCounter).getId();
     }
     
     public String getCurrentPassword(){
-        return getAllPassword()[arrayCounter];
+        return initializeUser().get(arrayCounter).getPassword();
     }
     
     public String getCurrentEmail(){
-        if (getAllEmail()[arrayCounter] == null || getAllEmail()[arrayCounter].equals(""))
-            return "None";
-        else
-            return getAllEmail()[arrayCounter];
+        return initializeUser().get(arrayCounter).getEmail();
     }
     
     // For assigning userID automatically without duplication causing any errors

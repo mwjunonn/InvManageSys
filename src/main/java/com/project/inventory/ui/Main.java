@@ -22,6 +22,7 @@ public abstract class Main {
     public static void mainMenu(){
         int choice = 0;
         do{
+            ArrayList<User> userArr = user.initializeUser();
                 System.out.println("[Welcome to MIXUE Inventory System]");
                 System.out.println("-----------------------------------");
                 choice = getMenuInput(new String[]{
@@ -32,22 +33,23 @@ public abstract class Main {
             System.out.println();
             switch(choice){
                 case 1:
-                    if (loginMenu())
-                        menu();
+                    if (loginMenu(userArr))
+                        menu(userArr);
                     break;
                 case 2:
-                    registerMenu();
+                    registerMenu(userArr);
                     break;
-                case 3:
+                case 0:
+                    System.out.println("Exit Program.");
                     break;
                 default: 
                     System.out.println("Invalid Input! Try Again");
                     break;
             }
-        }while (choice != 3);
+        }while (choice != 0);
     }
 
-    public static boolean loginMenu() {
+    public static boolean loginMenu(ArrayList<User> userArr) {
         int choice = 0;
         String id = "";
         String password = "";
@@ -77,19 +79,20 @@ public abstract class Main {
                     password = scan.nextLine();
                     System.out.println();
                     break;
-                case 3:
+                case 0:
                     return false;
                 default:
                     System.out.println("Invalid Input! Try Again");
                     break;
             }
         } while (choice < 1 || choice > 3);
-        if (user.equals(id) && user.passwordValid(password)) {
+        if (user.checkRoles(id, userArr) && user.passwordValid(password, userArr)) {
             System.out.println("Login Successful");
             System.out.println("Welcome " + user.getCurrentName() + ".");
             System.out.println("---------------------------------------");
+            user.getCurrentLoginUser();
             return true;
-        } else if (user.equals(id) && !(user.passwordValid(password))) {
+        } else if (user.checkRoles(id, userArr) && !(user.passwordValid(password, userArr))) {
             System.out.println("Wrong Password!");
         } else
             System.out.println("Login Failed");
@@ -97,47 +100,51 @@ public abstract class Main {
         return false;
     }
 
-    public static void menu() {
+    public static void menu(ArrayList<User> userArr) {
+        //userArr.get(0).getPosition().equals(id);
         int decision;
         Thread.startVirtualThread(Inventory.getInstance());
-        do {
+        do{
             decision = permissionMenu(user.permission());
             if (user.permission().equals(User.Permission.FULL_CONTROL)) { //Manager
                 Manager manager = (Manager) user;
-                switch (decision) {
-                    case 1:     //Restock Inventory
-                        inventoryMenu();
-                        break;
-                    case 2:     //Current Stock Report
-                        selectInventory();
-                        break;
-                    case 3:     //Supplier Menu
-                        supplierMenu();
-                        break;
-                    case 4:     //All staff details
-                        manager.displayAllUser();
-                        System.out.println("\n");
-                        break;
-                    case 5:     //Modify staff details
-                        manager.displayAllUser();
-                        System.out.println("------------------------------------------------------------------------\n");
-                        modifyUser();
-                        break;
-                    case 6:     //Delete staff
-                        manager.displayAllUser();
-                        System.out.println("------------------------------------------------------------------------\n");
-                        deleteUser();
-                        break;
-                    case 7:
-                        System.out.println("\nReturning to last page.\n");
-                        break;
-                    default:
-                        break;
-                }
+                    switch (decision) {
+                        case 0:
+                            System.out.println("Returning to last page");
+                            break;
+                        case 1:     //Restock Inventory
+                            inventoryMenu();
+                            break;
+                        case 2:     //Current Stock Report
+                            selectInventory();
+                            break;
+                        case 3:     //Supplier Menu
+                            supplierMenu();
+                            break;
+                        case 4:     //All staff details
+                            manager.displayAllUser(userArr);
+                            System.out.println("\n");
+                            break;
+                        case 5:     //Modify staff details
+                            manager.displayAllUser(userArr);
+                            System.out.println("------------------------------------------------------------------------\n");
+                            modifyUser(userArr);
+                            break;
+                        case 6:     //Delete staff
+                            manager.displayAllUser(userArr);
+                            System.out.println("------------------------------------------------------------------------\n");
+                            deleteUser(userArr);
+                            break;
+    //                    case 7:
+    //                        System.out.println("\nReturning to last page.\n");
+    //                        break;
+                        default:
+                            break;
+                    }
             } else if (user.permission().equals(User.Permission.ADMIN)) { //Admin
                 switch (decision) {
                     case 1:     //Restock inventory
-                        generatePurchaseOrder();
+                        generatePurchaseOrder(userArr);
                         break;
                     case 2:     //Purchase order status
                         poMenu();
@@ -145,17 +152,17 @@ public abstract class Main {
                     case 3:
                         orderMenu();
                         break;
-                    case 4:
+                    case 0:
                         System.out.println("Returning to last page.");
                         break;
                     default:
                         break;
                 }
             }
-        } while (decision != 4);
+        }while(decision != 0);
     }
 
-    public static void registerMenu(){
+    public static void registerMenu(ArrayList<User> userArr){
         String managerID = new String();
         String managerPassword = new String();
         String name = new String();
@@ -174,7 +181,7 @@ public abstract class Main {
         System.out.println("Require manager to approve registration.");
         System.out.print("Enter Manager ID: ");
         managerID = scan.nextLine();
-        if (manager.equals(managerID)) {
+        if (manager.checkRoles(managerID, userArr)) {
             System.out.print("Password: ");
             managerPassword = scan.nextLine();
         }
@@ -182,7 +189,7 @@ public abstract class Main {
             System.out.println("You are not a Manager.");
         
         System.out.println();
-        if (manager.equals(managerID) && manager.passwordValid(managerPassword)) {
+        if (manager.checkRoles(managerID, userArr) && manager.passwordValid(managerPassword, userArr)) {
             System.out.println("[Registration Portal]");
             System.out.println("---------------------");
             System.out.print("Enter name: ");
@@ -278,7 +285,7 @@ public abstract class Main {
                 System.out.println();
             }
         }
-        else if (manager.equals(managerID) && !(manager.passwordValid(managerPassword))) {
+        else if (manager.checkRoles(managerID, userArr) && !(manager.passwordValid(managerPassword, userArr))) {
             System.out.println("Wrong Password.");
         }
             
@@ -312,7 +319,7 @@ public abstract class Main {
         }
     }
     
-    public static void modifyUser(){
+    public static void modifyUser(ArrayList<User> userArr){
         Manager manager = new Manager();
         InventoryAdmin inventoryAdmin = new InventoryAdmin();
         
@@ -324,7 +331,7 @@ public abstract class Main {
         
         System.out.print("Enter an employee's ID to start modify: ");
         modifyID = scan.nextLine();
-        if (!(manager.equals(modifyID)) && !(inventoryAdmin.equals(modifyID))) {
+        if (!(manager.checkRoles(modifyID, userArr)) && !(inventoryAdmin.checkRoles(modifyID, userArr))) {
             System.out.println("User not exist.");
         }
         else{
@@ -348,7 +355,8 @@ public abstract class Main {
                         confirmation = scan.nextInt();
                         if (confirmation == 0) {
                             manager.setName(modifyData);
-                            manager.modifyStaff(modifyID, modifyAttributes);
+                            manager.modifyStaff(modifyID, modifyAttributes, userArr);
+                            userArr.get(User.arrayCounter).setName(modifyData);
                             System.out.println("User Name Modified Successfully.");
                         }
                         else
@@ -371,7 +379,8 @@ public abstract class Main {
                         confirmation = scan.nextInt();
                         if (confirmation == 0) {
                             manager.setPassword(modifyData);
-                            manager.modifyStaff(modifyID, modifyAttributes);
+                            manager.modifyStaff(modifyID, modifyAttributes, userArr);
+                            userArr.get(User.arrayCounter).setPassword(modifyData);
                             System.out.println("User Password Modified Successfully.");
                         }
                         else
@@ -385,7 +394,8 @@ public abstract class Main {
                         confirmation = scan.nextInt();
                         if (confirmation == 0) {
                             manager.setEmail(modifyData);
-                            manager.modifyStaff(modifyID, modifyAttributes);
+                            manager.modifyStaff(modifyID, modifyAttributes, userArr);
+                            userArr.get(User.arrayCounter).setEmail(modifyData);
                             System.out.println("User Password Modified Successfully.");
                         }
                         else
@@ -403,7 +413,7 @@ public abstract class Main {
         }
     }
     
-    public static void deleteUser(){
+    public static void deleteUser(ArrayList<User> userArr){
         Manager manager = new Manager();
         InventoryAdmin inventoryAdmin = new InventoryAdmin();
         
@@ -412,8 +422,11 @@ public abstract class Main {
         
         System.out.print("Enter an employee's ID to delete: ");
         deleteID = scan.nextLine();
-        if (!(manager.equals(deleteID)) && !(inventoryAdmin.equals(deleteID))) {
+        if (!(manager.checkRoles(deleteID, userArr)) && !(inventoryAdmin.checkRoles(deleteID, userArr))) {
             System.out.println("User not exist.");
+        }
+        else if (deleteID.equals(userArr.get(User.currentUserLoginCounter).getId())) {
+            System.out.println("\nYou cannot delete yourself!\n");
         }
         else{
             try{
@@ -426,7 +439,8 @@ public abstract class Main {
             }
             if (confirmation == 0) {
                 System.out.println("Deletion Complete.");
-                manager.deleteStaff(deleteID);
+                manager.deleteStaff(deleteID, userArr);
+                userArr.remove(User.arrayCounter);
             }
             else
                 System.out.println("Action Ignore.");
@@ -1904,9 +1918,10 @@ public abstract class Main {
         }while(choice != 4);
     }
     
-     private static void generatePurchaseOrder(){
+     private static void generatePurchaseOrder(ArrayList<User> userArr){
          Inventory inventory = Inventory.getInstance();
-            PurchaseOrder purchaseorder = new PurchaseOrder(getNextOrderNumber(), new Date(), user.getCurrentID(), "Ordering" , 0.0);
+            PurchaseOrder purchaseorder = new PurchaseOrder(getNextOrderNumber(), new Date(), 
+                    userArr.get(User.currentUserLoginCounter).getName(), "Ordering" , 0.0);
             Order order;
             String itemId;
             String choice = "y";

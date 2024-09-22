@@ -1,11 +1,19 @@
 package com.project.inventory.application;
 
+import java.util.ArrayList;
+
 public class InventoryAdmin extends User {
-    private final static String position = "InventoryAdmin";
+    private final static String POSITION = "InventoryAdmin";
+    
+    //Initialize use constructor
+    public InventoryAdmin(String user_id, String name, String password, String email){
+        super(user_id, name, password, email);
+        super.position = this.POSITION;
+    }
     
     public InventoryAdmin(String name, String password, String email){
         super(name, password, email);
-        super.position = position;
+        super.position = this.POSITION;
         userCount++;
     }
     
@@ -20,16 +28,17 @@ public class InventoryAdmin extends User {
     
     public void setALL(){
         super.setALL(name, password, email);
-        super.position = position;
+        super.position = POSITION;
     }
     
     public Permission permission(){
         return Permission.ADMIN;
     }
     
-    public boolean equals(Object verify){
-        for(int i = 0; i < getAllId().length; i++){
-            if (verify.equals(getAllId()[i]) && getAllPosition()[i].equals("InventoryAdmin")) {
+    public boolean checkRoles(Object verify, ArrayList<User> userArr){
+        for(int i = 0; i < userArr.size(); i++){
+            if (userArr.get(i).getId().equals(verify) && 
+                    userArr.get(i).getPosition().equals("InventoryAdmin")) {
                 arrayCounter = i;
                 return true;
             }
