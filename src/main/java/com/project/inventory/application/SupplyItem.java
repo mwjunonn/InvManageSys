@@ -8,11 +8,12 @@ import java.util.ArrayList;
  * @author Lee
  */
 public class SupplyItem {
-    private static Database db = new Database("supplier_item");
     private String supplierId, itemId;
     private double shippingFee, cost;
     private String itemName;
     public static int supplyItemNum = 0;
+    private static Database db = new Database("supplier_item");
+
     
     
     
