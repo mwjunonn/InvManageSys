@@ -129,15 +129,6 @@ public class Supplier {
         return suppliers;
     }
     
-    public boolean isSupplierExists(ArrayList<Supplier> suppliers, String supplierId) {
-        
-        for(int i = 0; i < suppliers.size(); i++){
-            if(suppliers.get(i).getSupplierId().equals(supplierId))
-                return true;
-            
-        }
-        return false;
-    }
 
     public Supplier getAllSupplierInfo(ArrayList<Supplier> suppliers, String supplierId) {
         
@@ -148,6 +139,16 @@ public class Supplier {
         }
         
         return null;
+    }
+    
+    public boolean isSupplierExists(ArrayList<Supplier> suppliers, String supplierId) {
+        
+        for(int i = 0; i < suppliers.size(); i++){
+            if(suppliers.get(i).getSupplierId().equals(supplierId))
+                return true;
+            
+        }
+        return false;
     }
     
     public void addSupplier(Supplier supplier){
