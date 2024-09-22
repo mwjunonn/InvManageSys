@@ -3,12 +3,6 @@ package com.project.inventory.ui;
 import com.project.inventory.application.*;
 import com.project.inventory.dao.Database;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.OutputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -109,8 +103,8 @@ public abstract class Main {
     public static void menu(ArrayList<User> userArr) {
         //userArr.get(0).getPosition().equals(id);
         int decision;
-        Thread.startVirtualThread(Inventory.getInstance());
         do{
+            Thread.startVirtualThread(Inventory.getInstance());
             decision = permissionMenu(user.permission());
             if (user.permission().equals(User.Permission.FULL_CONTROL)) { //Manager
                 Manager manager = (Manager) user;
@@ -780,7 +774,7 @@ public abstract class Main {
 
     private static String promptItemType(){
         ArrayList<String> tempOption = new ArrayList<>();
-        for (Item.itemTypeConstant i : Item.itemTypeConstant.values()) {
+        for (Item.ItemTypeConstant i : Item.ItemTypeConstant.values()) {
             tempOption.add(i.getValue());
         }
         tempOption.add("Other");

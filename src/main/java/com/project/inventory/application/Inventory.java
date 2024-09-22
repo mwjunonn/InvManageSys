@@ -9,8 +9,7 @@ import java.util.*;
  */
 public class Inventory implements Runnable{
     private ArrayList<Item> itemList = new ArrayList<>();
-    private HashMap<String, Integer> itemNameWIthIndex= new HashMap<>();
-    private HashMap<String, Integer> itemIdWithIndex = new HashMap<>();
+    private HashMap<String, Integer> uniqueFieldWithIndex= new HashMap<>();
     private static Inventory inventory = new Inventory();
 
     private Inventory() {
@@ -36,8 +35,8 @@ public class Inventory implements Runnable{
         InventoryDAOImpl inventoryDAO = new InventoryDAOImpl();
         itemList = inventoryDAO.getAllInventory(Boolean.TRUE);
         for (int i = 0; i < itemList.size(); i++) {
-            itemNameWIthIndex.put(itemList.get(i).getItemName(), i);
-            itemIdWithIndex.put(itemList.get(i).getItemId(), i);
+            uniqueFieldWithIndex.put(itemList.get(i).getItemName(), i);
+            uniqueFieldWithIndex.put(itemList.get(i).getItemId(), i);
         }
     }
 
@@ -45,7 +44,7 @@ public class Inventory implements Runnable{
         if (item != null) {
             if (!(item.getItemId().equals("null") || item.getItemName().isEmpty())) {
                 itemList.add(item);
-                itemNameWIthIndex.put(item.getItemName(), itemList.indexOf(item));
+                uniqueFieldWithIndex.put(item.getItemName(), itemList.indexOf(item));
                 return true;
             }
         }
@@ -68,7 +67,7 @@ public class Inventory implements Runnable{
     }
 
     public Item getItem(String itemId) {
-        Integer index = itemIdWithIndex.get(itemId);
+        Integer index = uniqueFieldWithIndex.get(itemId);
         if(itemId != null && index != null) {
             if(! itemId.equalsIgnoreCase("null") && ! itemList.isEmpty())
                 return getItem(index);
@@ -82,7 +81,7 @@ public class Inventory implements Runnable{
     }
 
     public boolean checkIdUnique(String id) {
-       return !itemIdWithIndex.containsKey(id);
+       return !uniqueFieldWithIndex.containsKey(id);
     }
 
     public void closeInventory(){
@@ -90,12 +89,12 @@ public class Inventory implements Runnable{
     }
 
     public Item checkNameUnique(String itemName){
-        if(itemNameWIthIndex.containsKey(itemName)) //If this item name is contain in the HashMap, means it is not unique
-            return getItem(itemNameWIthIndex.get(itemName));
-        for(String str : itemNameWIthIndex.keySet()){
+        if(uniqueFieldWithIndex.containsKey(itemName)) //If this item name is contain in the HashMap, means it is not unique
+            return getItem(uniqueFieldWithIndex.get(itemName));
+        for(String str : uniqueFieldWithIndex.keySet()){
             if(itemName.equalsIgnoreCase(str)) {
-                itemNameWIthIndex.put(itemName, itemNameWIthIndex.get(str)); //add a different case to the hashmap but point to the same
-                return getItem(itemNameWIthIndex.get(str));
+                uniqueFieldWithIndex.put(itemName, uniqueFieldWithIndex.get(str)); //add a different case to the hashmap but point to the same
+                return getItem(uniqueFieldWithIndex.get(str));
             }
         }
         return null;
