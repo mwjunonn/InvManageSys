@@ -543,7 +543,7 @@ public abstract class Main {
             validation = false;
             System.out.println("Item name = " + item.getItemName());
             System.out.println("Item quantity = " + item.getQuantity());
-            System.out.print("Current item quantity = " + item.getQuantity() + "+ ");
+            System.out.print("Current item quantity = " + item.getQuantity() + " + ");
             if (scan.hasNextDouble()) {
                 restockQuantity = scan.nextDouble();
                 validation = true;
