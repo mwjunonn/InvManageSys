@@ -1921,7 +1921,7 @@ public abstract class Main {
      private static void generatePurchaseOrder(ArrayList<User> userArr){
          Inventory inventory = Inventory.getInstance();
             PurchaseOrder purchaseorder = new PurchaseOrder(getNextOrderNumber(), new Date(), 
-                    userArr.get(User.currentUserLoginCounter).getName(), "Ordering" , 0.0);
+                    userArr.get(User.currentUserLoginCounter).getId(), "Ordering" , 0.0);
             Order order;
             String itemId;
             String choice = "y";
