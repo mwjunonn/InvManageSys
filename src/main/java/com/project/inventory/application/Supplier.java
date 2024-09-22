@@ -81,35 +81,51 @@ public class Supplier {
         ArrayList<Supplier> suppliers = new ArrayList<>();
         Supplier supplier;
         double importDuty = 0.0;
-            
-        db.readTable(columns); 
-        ArrayList<String> resultList = db.getResult();
 
-        for (int j = 1; j < resultList.size(); j++) { 
-            String[] supplierData = resultList.get(j).split(Database.delimiter);
-           
-            if (supplierData.length == columns.length) {
-                            
-                if (!supplierData[5].isEmpty()) {
+        // Read table using the columns specified
+        db.readTable(columns);
+
+        // Fetch the result as an ArrayList of ArrayLists (each row as an ArrayList<Object>)
+        ArrayList<ArrayList<Object>> resultList = db.getObjResult();
+
+        // Start from 1 to skip the column labels (first row)
+        for (int j = 1; j < resultList.size(); j++) {
+            ArrayList<Object> row = resultList.get(j); // Get each row
+
+            // Ensure the row has the correct number of columns
+            if (row.size() == columns.length) {
+                String supplierId2 = (String) row.get(0);
+                String supplierName2 = (String) row.get(1);
+                String supplierAddress2 = (String) row.get(2);
+                String emailAddress = (String) row.get(3);
+                String supplierType = (String) row.get(4);
+                Object importDutyObj = row.get(5);
+
+                // Parse import duty, handling possible null or empty values
+                if (importDutyObj != null && !importDutyObj.toString().isEmpty()) {
                     try {
-                        importDuty = Double.parseDouble(supplierData[5]);
+                        importDuty = Double.parseDouble(importDutyObj.toString());
                     } catch (NumberFormatException e) {
-                        System.out.println("Error parsing import duty for supplier: " + supplierId);
+                        System.out.println("Error parsing import duty for supplier: " + supplierId2);
                     }
-                }
-              
-                if (supplierData[4].equals("Local")) {
-                    supplier = new LocalSupplier(supplierData[0], supplierData[1], supplierData[2], supplierData[3], supplierData[4], importDuty);
                 } else {
-                    supplier = new ForeignSupplier(supplierData[0], supplierData[1], supplierData[2], supplierData[3], supplierData[4], importDuty);
+                    importDuty = 0.0; // Default to 0.0 if no import duty provided
                 }
+
+                // Create supplier objects based on supplier type
+                if (supplierType.equals("Local")) {
+                    supplier = new LocalSupplier(supplierId2, supplierName2, supplierAddress2, emailAddress, supplierType, importDuty);
+                } else {
+                    supplier = new ForeignSupplier(supplierId2, supplierName2, supplierAddress2, emailAddress, supplierType, importDuty);
+                }
+                // Add supplier to the list
                 suppliers.add(supplier);
             } else {
                 System.out.println("Error: Incorrect data format in row " + (j + 1));
             }
         }
 
-        numSupplier = resultList.size() - 1; 
+        numSupplier = resultList.size() - 1; // Adjust the count of suppliers
         return suppliers;
     }
     
@@ -156,10 +172,10 @@ public class Supplier {
         System.out.println("Added Successfully");
     }
 
-    public boolean validateSupplierInfo(String id, String name, String address, String email, String type){
+    public boolean validateSupplierInfo(ArrayList<Supplier> suppliers, String id, String name, String address, String email, String type){
 
 
-        if(!validateSupplierName(name) || !validateSupplierAddress(address) || !validateSupplierEmail(email))
+        if(!validateSupplierName(name) || !validateSupplierAddress(suppliers, address) || !validateSupplierEmail(email))
             return false;
 
         if(!type.equals("Local") && !type.equals("Foreign")){
@@ -185,11 +201,10 @@ public class Supplier {
 
     }
 
-    public boolean validateSupplierAddress(String address){
-        String[] columns ={"supplier_address"};
-        db.readTable(columns);
-        ArrayList<String> resultList = db.getResult();
-
+    public boolean validateSupplierAddress(ArrayList<Supplier> suppliers, String address){        
+        
+        address = address.trim();
+        
         if(address.isEmpty()|| address.isBlank() || address == null ){
             System.out.println("Supplier Address cannot be empty!");
             return false;
@@ -198,9 +213,9 @@ public class Supplier {
             System.out.println("Error: Supplier's Address must contain 10 - 100 characters.");
             return false;
         }
-        for(String supplierAddress : resultList){
-            if(supplierAddress.equals(address)){
-                System.out.println("Duplicate Supplier Address");
+        for(int i = 0; i < suppliers.size();i++){
+            if(suppliers.get(i).getSupplierAddress().trim().equalsIgnoreCase(address)){
+                System.out.println("Cannot have a duplicate address!");
                 return false;
             }
         }

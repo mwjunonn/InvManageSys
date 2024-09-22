@@ -73,6 +73,7 @@ public class SupplyItem {
     
     
     
+    @Override
     public String toString(){
         return String.format("| %-11s | %-10s | %-16.2f | %-12.2f |\n", supplierId, itemId, shippingFee, cost);
     }
@@ -92,25 +93,30 @@ public class SupplyItem {
     
         db.readTable(columns, new Object[][]{}, additional);
         
-        ArrayList<String> result = db.getResult();
+        ArrayList<ArrayList<Object>> result = db.getObjResult();
         
         for(int i =1; i < result.size();i++){
-            String[] supplyItemData = result.get(i).split(Database.delimiter);
+            ArrayList<Object> supplyItemData = result.get(i);
             
             try{
-                shipping_fee = Double.parseDouble(supplyItemData[3]);
+                shipping_fee = Double.parseDouble(supplyItemData.get(3).toString());
             }catch(NumberFormatException ex){
                 System.out.println("Error: Parsing Shipping Fee");
             }
             try{
-                cost2 = Double.parseDouble(supplyItemData[4]);
+                cost2 = Double.parseDouble(supplyItemData.get(4).toString());
             }catch(NumberFormatException ex){
                 System.out.println("Error: Parsing Cost");
             }
             
+            supplyItem = new SupplyItem(
+            supplyItemData.get(0).toString(),  
+            supplyItemData.get(1).toString(),  
+            supplyItemData.get(2).toString(),
+            shipping_fee,                   
+            cost2                              
+            );
             
-            
-            supplyItem = new SupplyItem(supplyItemData[0], supplyItemData[1], supplyItemData[2],shipping_fee, cost2);
             supplyItems.add(supplyItem);
             
         }
