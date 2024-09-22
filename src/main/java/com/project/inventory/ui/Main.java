@@ -843,6 +843,7 @@ public abstract class Main {
             switch(choice){
                 case 1:
                     do{
+                        choice = 0;
                         try{
                             System.out.println("-----------------");
                             System.out.println("| Supplier Menu |");
@@ -884,6 +885,8 @@ public abstract class Main {
                     break;
                 case 2:
                     do{
+                       choice = 0;
+
                         try{
                             System.out.println("--------------------");
                             System.out.println("| Supply Item Menu |");
@@ -992,6 +995,7 @@ public abstract class Main {
                 email = scan.nextLine();
 
                 do{
+                    options = 0;
                     try{
                         System.out.println("Select the type of supplier: ");
                         System.out.println("1. Local Supplier");
@@ -1072,37 +1076,44 @@ public abstract class Main {
                             }catch(NumberFormatException ex){
                                 System.out.println("Error: Cannot Read The Shipping Fee!");
                             }
-                            SupplyItem newSupplyItem = new SupplyItem();
+                            
+                            if(shipping_fee > 0 && shipping_fee < 1000 && cost > 0 && cost < 1000){
+                                SupplyItem newSupplyItem = new SupplyItem();
 
-                            newSupplyItem.setSupplierId(id);
-                            newSupplyItem.setItemId(item.getItemId());
-                            newSupplyItem.setItemName(item.getItemName());
-                            newSupplyItem.setShippingFee(shipping_fee);
-                            newSupplyItem.setCost(cost);
+                                newSupplyItem.setSupplierId(id);
+                                newSupplyItem.setItemId(item.getItemId());
+                                newSupplyItem.setItemName(item.getItemName());
+                                newSupplyItem.setShippingFee(shipping_fee);
+                                newSupplyItem.setCost(cost);
 
-                            if(supplyItemManager.writeData(newSupplyItem)){
-                                supplyItems.add(newSupplyItem);
-                                SupplyItem.supplyItemNum++;
-                                
-                                System.out.println("Data Has Added.");        
-                                System.out.println();
-                                do{
-                                    try{
-                                        System.out.println("Do You Want To Add Another Item? ");
-                                        System.out.println("1. Yes");
-                                        System.out.println("2. No");
-                                        System.out.print("Enter Your Choice: ");
-                                        options = Integer.parseInt(scan.nextLine());
-                                    }catch(NumberFormatException ex){
-                                        System.out.println("Error: Your Input Choice Should Be An Integer!");
-                                    }
+                                if(supplyItemManager.writeData(newSupplyItem)){
+                                    supplyItems.add(newSupplyItem);
+                                    SupplyItem.supplyItemNum++;
 
-                                    if(options != 1 && options !=2)
-                                        System.out.println("Invalid Options! Please Try Again");
-                                }while(options != 1 && options != 2);
+                                    System.out.println("Data Has Added.");        
+                                    System.out.println();
+                                    do{
+                                        try{
+                                            System.out.println("Do You Want To Add Another Item? ");
+                                            System.out.println("1. Yes");
+                                            System.out.println("2. No");
+                                            System.out.print("Enter Your Choice: ");
+                                            options = Integer.parseInt(scan.nextLine());
+                                        }catch(NumberFormatException ex){
+                                            System.out.println("Error: Your Input Choice Should Be An Integer!");
+                                        }
+
+                                        if(options != 1 && options !=2)
+                                            System.out.println("Invalid Options! Please Try Again");
+                                    }while(options != 1 && options != 2);
+                                }
+                                else{
+                                   System.out.println("This item is already associated with the supplier. Please enter a different item.");
+                                }
                             }
                             else{
-                               System.out.println("This item is already associated with the supplier. Please enter a different item.");
+                                System.out.println("Please ensure the shipping fee and cost are within the valid range of RM0 to RM999.");
+                                options = 1;
                             }
                         }
 
@@ -1114,6 +1125,7 @@ public abstract class Main {
                 }
                 else{
                     do{
+                        options = 0;
                         try{
                             System.out.println("Do you want to try again?");
                             System.out.println("1. Yes");
@@ -1742,7 +1754,7 @@ public abstract class Main {
                 System.out.print("Shipping Fee: RM");
                 shippingFee = Double.parseDouble(scan.nextLine());
                       
-                if(shippingFee > 0 && shippingFee <1000){
+                if(shippingFee > 0 && shippingFee <1000 && cost > 0 && cost < 1000){
                     SupplyItem newSupplyItem = new SupplyItem();
                     newSupplyItem.setSupplierId(supplierId);
                     newSupplyItem.setItemId(item.getItemId());
@@ -1759,7 +1771,7 @@ public abstract class Main {
                     }
                 }
                 else{
-                    System.out.println("Please ensure the shipping fee is within the valid range of RM0 to RM999.");
+                    System.out.println("Please ensure the shipping fee and cost are within the valid range of RM0 to RM999.");
                     System.out.println("You will now be exited from this function.");
                     System.out.println("To try again, please reselect the function from the menu.");
                 }
@@ -2693,6 +2705,5 @@ public abstract class Main {
             System.out.println("Press Enter to continue");
             scan.nextLine();
         }
-        
-         
+
 }
