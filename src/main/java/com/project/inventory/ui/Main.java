@@ -167,14 +167,14 @@ public abstract class Main {
     public static void registerMenu(ArrayList<User> userArr){
         String managerID = new String();
         String managerPassword = new String();
-        String name = new String();
+        String name = "";
         String position = new String();
-        String password = new String();
+        String password = "";
         String confirmPassword = new String();
         String email = new String();
         int selection;
         String user_id = new String();
-        
+        boolean valid = false;
         User manager = new Manager();
         
         //If found out how to clear screen, enable this two
@@ -194,9 +194,17 @@ public abstract class Main {
         if (manager.checkRoles(managerID, userArr) && manager.passwordValid(managerPassword, userArr)) {
             System.out.println("[Registration Portal]");
             System.out.println("---------------------");
-            System.out.print("Enter name: ");
-            name = scan.nextLine();
-            User.nameValidation(name);
+            while(!valid){
+                System.out.print("Enter name: ");
+                name = scan.nextLine();
+                
+                try{
+                    User.nameValidation(name);
+                    valid = true;
+                }catch(IllegalArgumentException ex){
+                    System.out.println(ex.getMessage());
+                }
+            }
             do {
                 System.out.println("Position: ");
                 System.out.println("1. Manager");
@@ -216,9 +224,17 @@ public abstract class Main {
                         break;
                 }
             } while (selection != 1 && selection!= 2);
-            System.out.print("Create password: ");
-            password = scan.nextLine();
-            User.passwordValidation(password);
+            valid = false;
+            while(!valid){
+                System.out.print("Create password: ");
+                password = scan.nextLine();
+                try{
+                    User.passwordValidation(password);
+                    valid = true;
+                }catch(IllegalArgumentException ex){
+                    System.out.println(ex.getMessage());
+                }
+            }
             System.out.print("Confirm password: ");
             confirmPassword = scan.nextLine();
             while(!(confirmPassword.equals(password))){
