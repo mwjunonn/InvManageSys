@@ -1631,9 +1631,9 @@ public abstract class Main {
         if(supplyItems.isEmpty()){
             System.out.println("No Supply Item Data Found.");
         }else{
-            InventoryUIController controller = new InventoryUIController(InventoryUIController.TableMode.INVENTORY_WITH_SUPPLIER);
-            InventoryUI ui = new InventoryUI(controller);
-            ui.showSupplyItemTable();
+//            InventoryUIController controller = new InventoryUIController(InventoryUIController.TableMode.INVENTORY_WITH_SUPPLIER);
+//            InventoryUI ui = new InventoryUI(controller);
+//            ui.showSupplyItemTable();
     
             for (int i = 0; i < supplyItems.size(); i++) {
                 SupplyItem supplyItem = supplyItems.get(i);
