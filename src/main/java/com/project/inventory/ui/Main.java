@@ -160,6 +160,9 @@ public abstract class Main {
                     case 3:
                         orderMenu(orders);
                         break;
+                    case 4:
+                        inventoryMenu();
+                        break;
                     case 0:
                         System.out.println("Returning to last page.");
                         break;
@@ -352,6 +355,7 @@ public abstract class Main {
                         "Order items", //order item @ purchase order
                         "Purchase Order Menu",
                         "Order Menu",
+                        "Inventory",
                         "Return to last page"
                 });
                 return decision;
@@ -491,12 +495,25 @@ public abstract class Main {
     private static void inventoryMenu(){
         Inventory inventory = Inventory.getInstance();
         Thread.startVirtualThread(inventory);
-        String[] option = new String[]{
+        String[] option;
+        if(user.permission().equals(User.Permission.FULL_CONTROL)){
+        option = new String[]{
                 "Restock inventory",
                 "Create item",
                 "Item operation",
                 "Exit"
         };
+        }else if(user.permission().equals(User.Permission.ADMIN)){
+            option = new String[]{
+                    "Restock inventory",
+                    "Item operation",
+                    "Exit"
+            };
+        }else{
+            option = new String[]{
+                    "Exit"
+            };
+        }
         while(true) {
             System.out.println("Inventory\n---------");
             int input = getMenuInput(option);
@@ -546,11 +563,23 @@ public abstract class Main {
 
     private static void inventoryOperation(int index) {
         System.out.println("What you would like to do ?");
-        String[] option = new String[]{
-                "Update item",
-                "Delete item",
-                "Exit"
-        };
+        String[] option;
+        if(user.permission().equals(User.Permission.FULL_CONTROL)) {
+            option = new String[]{
+                    "Update item",
+                    "Delete item",
+                    "Exit"
+            };
+        } else if (user.permission().equals(User.Permission.ADMIN)) {
+            option = new String[]{
+                    "Update item",
+                    "Exit"
+            };
+        }else{
+            option = new String[]{
+                    "Exit"
+            };
+        }
         int input = getMenuInput(option);
         if(--input == -1)
             return;
@@ -569,13 +598,27 @@ public abstract class Main {
         String strInput;
         Inventory inventory = Inventory.getInstance();
         Item item = inventory.getItem(index);
-        String[] itemDataName = new String[]{
-                "Item name",
-                "Item type",
-                "Quantity",
-                "Unit",
-                "Exit"
-        };
+        String[] itemDataName;
+        if(user.permission().equals(User.Permission.FULL_CONTROL)) {
+            itemDataName = new String[]{
+                    "Item name",
+                    "Item type",
+                    "Quantity",
+                    "Unit",
+                    "Exit"
+            };
+        } else if (user.permission().equals(User.Permission.ADMIN)) {
+            itemDataName = new String[]{
+                    "Item name",
+                    "Item type",
+                    "Quantity",
+                    "Exit"
+            };
+        }else{
+            itemDataName = new String[]{
+                    "Exit"
+            };
+        }
         String[] itemData = new String[]{
                 item.getItemName(),
                 item.getItemType(),
@@ -601,30 +644,43 @@ public abstract class Main {
             switch (itemDataName[input]) {
                 case "Item name":
                     strInput = scan.nextLine();
-                    Item tempItem = inventory.checkNameUnique(strInput);
-                    if(tempItem == null){
-                        item.setItemName(strInput);
+                    if(!strInput.equals("0")) {
+                        Item tempItem = inventory.checkNameUnique(strInput);
+                        if (tempItem == null) {
+                            item.setItemName(strInput);
+                        } else {
+                            System.out.println("Same item already exist! This is the item details...");
+                            showItemDetails(tempItem);
+                            validation = false;
                         }
-                    else{
-                        System.out.println("Same item already exist! This is the item details...");
-                        showItemDetails(tempItem);
+                    } else
                         validation = false;
-                    }
                     break;
 
                 case "Item type":
                     String itemType = promptItemType();
-                    item.setItemType(itemType);
+                    if(!itemType.equals("0"))
+                        item.setItemType(itemType);
+                    else
+                        validation = false;
                     break;
 
                 case "Quantity":
                     strInput = scan.nextLine();
-                    try {
-                        item.setQuantity(Double.parseDouble(strInput));
-                    } catch (NumberFormatException e) {
-                        System.out.println("Input is not number");
+                    System.out.println("Do you confirm ?");
+                    input = getMenuInput(new String[]{
+                            "Yes",
+                            "Exit"
+                    });
+                    if(input != 0) {
+                        try {
+                            item.setQuantity(Double.parseDouble(strInput));
+                        } catch (NumberFormatException e) {
+                            System.out.println("Input is not number");
+                            validation = false;
+                        }
+                    }else
                         validation = false;
-                    }
                     break;
 
                 case "Unit":
@@ -732,6 +788,8 @@ public abstract class Main {
         if(option == tempOption.size()){ // Means other
             System.out.print("Please type the item type: ");
             return scan.nextLine();
+        }else if(option == 0){
+            return "0";
         }else{
             return tempOption.get(--option);
         }
