@@ -86,13 +86,13 @@ public abstract class Main {
                     break;
             }
         } while (choice < 1 || choice > 3);
-        if (user.checkRoles(id, userArr) && user.passwordValid(password, userArr)) {
+        if (user.checkRoles(id, userArr) && user.passwordValidation(password, userArr)) {
             System.out.println("Login Successful");
             System.out.println("Welcome " + user.getCurrentName() + ".");
             System.out.println("---------------------------------------");
             user.getCurrentLoginUser();
             return true;
-        } else if (user.checkRoles(id, userArr) && !(user.passwordValid(password, userArr))) {
+        } else if (user.checkRoles(id, userArr) && !(user.passwordValidation(password, userArr))) {
             System.out.println("Wrong Password!");
         } else
             System.out.println("Login Failed");
@@ -191,7 +191,7 @@ public abstract class Main {
             System.out.println("You are not a Manager.");
         
         System.out.println();
-        if (manager.checkRoles(managerID, userArr) && manager.passwordValid(managerPassword, userArr)) {
+        if (manager.checkRoles(managerID, userArr) && manager.passwordValidation(managerPassword, userArr)) {
             System.out.println("[Registration Portal]");
             System.out.println("---------------------");
             while(!valid){
@@ -320,7 +320,7 @@ public abstract class Main {
                 System.out.println();
             }
         }
-        else if (manager.checkRoles(managerID, userArr) && !(manager.passwordValid(managerPassword, userArr))) {
+        else if (manager.checkRoles(managerID, userArr) && !(manager.passwordValidation(managerPassword, userArr))) {
             System.out.println("Wrong Password.");
         }
             

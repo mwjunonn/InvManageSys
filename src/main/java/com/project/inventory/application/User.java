@@ -90,7 +90,7 @@ public abstract class User {
     public abstract boolean checkRoles(Object obj, ArrayList<User> userArr);
     
     //Verify Password
-    public boolean passwordValid(String password, ArrayList<User> userArr){
+    public boolean passwordValidation(String password, ArrayList<User> userArr){
         if (userArr.get(arrayCounter).getPassword().equals(password)) {
             return true;
         }
