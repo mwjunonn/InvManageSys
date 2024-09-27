@@ -43,19 +43,13 @@ public class Order {
                 System.out.println("Order number is null, cannot update.");
                 return false;
             }
-    //
-    //        if (itemId != null) o.setItemId(itemId);
-    //        if (quantity != 0) o.setQuantity(quantity);
-    //        if (supplierId != null) o.setSupplierId(supplierId);
-    //        if (totalCost != 0) o.setTotalCost(totalCost);
-    //     
             ArrayList<Object[]> updates = new ArrayList<>();
             if (itemId != null) updates.add(new Object[]{"item_id", itemId});
             if (quantity != 0) updates.add(new Object[]{"quantity", quantity});
             if (supplierId != null) updates.add(new Object[]{"supplier_id", supplierId});
             if (totalCost != 0) updates.add(new Object[]{"total_cost", totalCost});
 
-            Object[][] condition = new Object[][] {{"order_no", orderNo}};
+            Object[][] condition = new Object[][] {{"order_no", orderNo},{"item_id",itemId}};
 
             return db.updateTable(updates.toArray(new Object[0][]), condition);
         }
@@ -94,14 +88,6 @@ public class Order {
         }
     
         
-//        public static Order findOrder(ArrayList<Order> orders, String orderNo) {
-//                for (Order o : orders) {
-//                    if (o.getOrderNo().equals(orderNo)) {
-//                        return o;
-//                    }
-//                }
-//                return null;
-//        }
         
         public static Order findOrder(ArrayList<Order> orders, String orderNo, String itemId) {
             for (Order order : orders) {
@@ -265,6 +251,14 @@ public class Order {
         }
     
         public boolean isValidItemId(String itemId) {
+            if (!itemId.matches("I\\d{4}")) {
+                System.out.println("Invalid item ID format. It should start with 'I' followed by exactly 4 digits (e.g., I0001).");
+                return false;
+            }
+            return true;
+        }
+        
+        public boolean isValidOrderNo(String orderNo) {
             if (!itemId.matches("I\\d{4}")) {
                 System.out.println("Invalid item ID format. It should start with 'I' followed by exactly 4 digits (e.g., I0001).");
                 return false;
