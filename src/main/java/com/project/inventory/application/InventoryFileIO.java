@@ -11,7 +11,7 @@ public class InventoryFileIO extends Thread{
 
         public InventoryFileIO() {
             super();
-            Thread.startVirtualThread(this);
+            createCurrentStockListFile();
         }
 
     public void createCurrentStockListFile() {
@@ -38,7 +38,8 @@ public class InventoryFileIO extends Thread{
                     fw.write("-");
                 }
                 fw.write("\n");
-                fw.write(String.format("%-15s | %-15s | %-15s | \n", ((Item) itemListWithColumns.get(i)).getItemName(), ((Item) itemListWithColumns.get(i)).getItemType(), ((Item) itemListWithColumns.get(i)).getItemUnit()));
+
+                fw.write(String.format("%-15s | %-15s | %-15s | \n", ((Item) itemListWithColumns.get(i)).getItemName(), ((Item) itemListWithColumns.get(i)).getItemType(), String.format("%.2f/%s",  ((Item) itemListWithColumns.get(i)).getQuantity(),  ((Item) itemListWithColumns.get(i)).getItemUnit())));
             }
             for (int j = 0; j < 54; j++) {
                 fw.write("-");
@@ -55,6 +56,5 @@ public class InventoryFileIO extends Thread{
 
     @Override
     public void run() {
-        createCurrentStockListFile();
     }
 }

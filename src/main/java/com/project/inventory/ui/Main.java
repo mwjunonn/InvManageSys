@@ -542,8 +542,8 @@ public abstract class Main {
         do {
             validation = false;
             System.out.println("Item name = " + item.getItemName());
-            System.out.println("Item quantity = " + item.getQuantity());
-            System.out.print("Current item quantity = " + item.getQuantity() + " + ");
+            System.out.println("Item quantity = " + item.getQuantity() + " in " + item.getItemUnit());
+            System.out.print("Current item quantity (in " + item.getItemUnit() + ") = " + item.getQuantity() + " + ");
             if (scan.hasNextDouble()) {
                 restockQuantity = scan.nextDouble();
                 validation = true;
@@ -553,6 +553,7 @@ public abstract class Main {
             }
         } while (!validation);
         item.setQuantity(item.getQuantity() + restockQuantity);
+        System.out.println("Inventory restock successfully");
     }
 
     private static void inventoryOperation(int index) {
@@ -652,6 +653,7 @@ public abstract class Main {
                     break;
 
                 case "Item type":
+                    System.out.println();
                     String itemType = promptItemType();
                     if(!itemType.equals("0"))
                         item.setItemType(itemType);
@@ -742,6 +744,9 @@ public abstract class Main {
         String input = scan.nextLine();
         if(input.equals("Yes")){
             inventory.deleteItem(item);
+            System.out.println("Item deleted sucussfully...");
+        }else{
+            System.out.println("Item are not deleted...");
         }
     }
 
@@ -782,7 +787,7 @@ public abstract class Main {
         if(option == tempOption.size()){ // Means other
             System.out.print("Please type the item type: ");
             return scan.nextLine();
-        }else if(option == 0){
+        }else if(option == 0 || option == 6){
             return "0";
         }else{
             return tempOption.get(--option);
@@ -2039,9 +2044,9 @@ public abstract class Main {
                         return;
                     }
 
-                    supplierId = "dffsd";//getSupplierIdbyItemId(item.getItemId());
+                    supplierId = Order.getSupplierIdbyItemId(item.getItemId());
 
-                    totalCost = 1;//(getItemCost(item.getItemId()) * quantityToAdd) + (getShippingFee(item.getItemId()) * quantityToAdd) + getImportDuty(supplierId);
+                    totalCost = (Order.getItemCost(item.getItemId()) * quantityToAdd) + (Order.getShippingFee(item.getItemId()) * quantityToAdd) + Order.getImportDuty(supplierId);
                    purchaseOrderTotalCost += totalCost;
 
                     //po.updateTotalCost(orderNo, purchaseOrderTotalCost);
