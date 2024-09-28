@@ -803,16 +803,22 @@ public abstract class Main {
         boolean validation;
         Inventory inventory = Inventory.getInstance();
         System.out.println("Please provide the item detail you want to create...");
-        System.out.print("Item name : ");
-        String itemName = scan.nextLine();
+        String itemName;
+        do {
+            System.out.print("Item name : ");
+            itemName = scan.nextLine();
+        }while(itemName.isBlank() || itemName == null);
         Item item = inventory.checkNameUnique(itemName);
         if(item != null){ //If it is not unique, means it have already
             System.out.println("Item has been created before! This is the item detail before created..");
             showItemDetails(item);
             return;
         }
+        String itemType;
+        do {
         System.out.println("Item type :");
-        String itemType = promptItemType();
+            itemType = promptItemType();
+        }while(itemType.equals("0"));
         String[] perUnitAndUnit = new String[0];
         String unit;
         do {

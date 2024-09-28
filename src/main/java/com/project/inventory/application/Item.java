@@ -139,7 +139,7 @@ public class Item implements Cloneable{
     }
 
     public static int indexOfSplit(String unit){
-        if (unit.matches("^\\d+(?:\\.\\d+)?[a-zA-Z]+$")) {//Means matching 1.2kg or 12kg
+        if (unit.matches("^[1-9]+(?:\\.\\d+)?[a-zA-Z]+$")) {//Means matching 1.2kg or 12kg
             Matcher matcher = Pattern.compile("\\d+(?:\\.\\d+)?").matcher(unit); //Number part
             if (matcher.find())//Find if there have number part, should have.
                 return matcher.end();
