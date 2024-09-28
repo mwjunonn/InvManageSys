@@ -13,7 +13,6 @@ public class PurchaseOrder {
         private String userId;
         private String status;
         private double totalCost;
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
         private static Database db = new Database("purchase_order");
 
@@ -133,8 +132,24 @@ public class PurchaseOrder {
             }
             return false;
         }
-
-
+        
+        public boolean isValidItemId(String itemId) {
+            if (!orderNo.matches("I\\d{4}")) {
+                System.out.println("Invalid item ID format. It should start with 'I' followed by exactly 4 digits (e.g., I0001).");
+                return false;
+            }
+            return true;
+        }
+        
+        public boolean isValidOrderNo(String orderNo) {
+            if (!orderNo.matches("^OD\\d{4}$")) {
+                System.out.println("Invalid order number format. It should start with 'OD' followed by exactly 4 digits (e.g., OD0001).");
+                return false;
+            }
+            return true;
+        }
+     
+       
         public String getOrderNo() {
             return orderNo;
         }

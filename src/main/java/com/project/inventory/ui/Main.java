@@ -2050,9 +2050,12 @@ public abstract class Main {
                         return;
                     }
 
-                    supplierId = Order.getSupplierIdbyItemId(item.getItemId());
 
-                    totalCost = (Order.getItemCost(item.getItemId()) * quantityToAdd) + (Order.getShippingFee(item.getItemId()) * quantityToAdd) + Order.getImportDuty(supplierId);
+                    //supplierId = "dffsd";//
+                   supplierId =  Order.getSupplierIdbyItemId(item.getItemId());
+
+                    totalCost = (Order.getItemCost(item.getItemId()) * quantityToAdd) + (Order.getShippingFee(item.getItemId()) * quantityToAdd) +Order.getImportDuty(supplierId);
+
                    purchaseOrderTotalCost += totalCost;
 
                     //po.updateTotalCost(orderNo, purchaseOrderTotalCost);
@@ -2211,10 +2214,11 @@ public abstract class Main {
 
                 try {
                     choice = scan.nextInt();
+                    scan.nextLine();
                     break;
                 } catch (InputMismatchException e) {
                     System.out.println("Invalid input. Please enter a valid integer.");
-                    scan.nextLine();
+                    scan.next();
                 }
             }
             
@@ -2710,33 +2714,35 @@ public abstract class Main {
             Database db = new Database("inventory");
 
             for (Order orderItem : temporder) {
-                String itemId = orderItem.getItemId();
-                int orderQuantity = orderItem.getQuantity();
+            String itemId = orderItem.getItemId();
+            int orderQuantity = orderItem.getQuantity();
 
-                db.readTable(new String[]{"quantity"}, new Object[][]{{"item_id", itemId}});
-                ArrayList<ArrayList<Object>> dbResult = db.getObjResult();
+            // Query the database for the current item and order
+            db.readTable(new String[]{"quantity"}, new Object[][]{{"item_id", itemId}});
+            ArrayList<ArrayList<Object>> dbResult = db.getObjResult();
 
-                if (dbResult.isEmpty() || dbResult.get(1).isEmpty()) {
-                    System.out.println("No inventory record found for item_id: " + itemId);
-                    return false;
-                }
-
-                double currentInventoryQuantity = (double) dbResult.get(1).get(0);
-                double updatedQuantity = currentInventoryQuantity + orderQuantity;
-
-                // update the database with the new quantity
-                Object[][] valuesToUpdate = {{"quantity", updatedQuantity}};
-                Object[][] condition = {{"item_id", itemId}};
-                boolean dbUpdateSuccess = db.updateTable(valuesToUpdate, condition);
-
-                if (!dbUpdateSuccess) {
-                    System.out.println("Failed to update database for item_id: " + itemId);
-                    return false;
-                }
+            if (dbResult.isEmpty() || dbResult.get(1).isEmpty()) {
+                System.out.println("No inventory record found for item_id: " + itemId + " and order_no: " + orderNo);
+                return false;
             }
 
-            System.out.println("Inventory quantities updated successfully.");
-            return true;
+            // Get current inventory quantity
+            double currentInventoryQuantity = (double) dbResult.get(1).get(0);
+            double updatedQuantity = currentInventoryQuantity + orderQuantity;
+
+            // Update the database with the new quantity
+            Object[][] valuesToUpdate = {{"quantity", updatedQuantity}};
+            Object[][] condition = {{"item_id", itemId}}; 
+            boolean dbUpdateSuccess = db.updateTable(valuesToUpdate, condition);
+
+            if (!dbUpdateSuccess) {
+                System.out.println("Failed to update database for item_id: " + itemId + " and order_no: " + orderNo);
+                return false;
+            }
+        }
+
+        System.out.println("Inventory quantities updated successfully.");
+        return true;
         }
 
         private static void enterToContinue(){
